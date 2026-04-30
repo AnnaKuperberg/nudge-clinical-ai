@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nudge. — Patient Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;display:flex;height:100vh;overflow:hidden;background:#0D1117;color:#C9D1D9}
+
+/* ─── SIDEBAR ─── */
+#sb{width:296px;min-width:296px;background:#0D1117;border-right:1px solid #21262D;display:flex;flex-direction:column;overflow-y:auto}
+#sb::-webkit-scrollbar{width:3px}
+#sb::-webkit-scrollbar-thumb{background:#21262D}
+
+.brand{padding:16px 16px 13px;border-bottom:1px solid #21262D}
+.brand-row{display:flex;align-items:baseline;gap:8px}
+.brand-name{font-size:24px;font-weight:800;color:#AAFF00;letter-spacing:-.5px}
+.brand-tag{font-size:9px;font-weight:700;color:#30363D;letter-spacing:.2em;text-transform:uppercase}
+.brand-sub{font-size:10px;color:#7D8590;margin-top:2px}
+
+.sb-sec{padding:12px 14px}
+.sb-lbl{font-size:9px;font-weight:700;letter-spacing:.2em;color:#8B949E;text-transform:uppercase;margin-bottom:4px}
+.sb-sublbl{font-size:9px;color:#484F58;font-weight:500;margin-bottom:10px}
+
+/* Risk legend */
+.risk-legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:#161B22;border-radius:8px;border:1px solid #21262D}
+.risk-legend-title{font-size:8px;font-weight:700;color:#484F58;text-transform:uppercase;letter-spacing:.15em;width:100%;margin-bottom:4px}
+.rl-item{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:600;color:#8B949E}
+.rl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* Patient list */
+.pt-list{display:flex;flex-direction:column;gap:4px}
+.pt-card{padding:10px 12px;border-radius:8px;border:1.5px solid #21262D;background:transparent;cursor:pointer;transition:all .15s;text-align:left;font-family:'Outfit',sans-serif;width:100%;position:relative}
+.pt-card:hover{border-color:#3D444D;background:#161B22}
+.pt-card.active{border-color:#388BFD50;background:#161B22}
+.pt-active-dot{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:#AAFF00;box-shadow:0 0 6px #AAFF00;display:none}
+.pt-card.active .pt-active-dot{display:block}
+.pt-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pt-name{font-size:13px;font-weight:700;color:#E6EDF3}
+.pt-pers{font-size:10px;color:#7D8590;font-weight:500;margin-top:2px}
+.pt-stats{display:flex;align-items:center;gap:6px;margin-top:3px}
+.pt-adh{font-size:10px;font-weight:600;color:#8B949E}
+.pt-adh span{color:#C9D1D9;font-weight:700}
+.risk-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:8px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+
+/* Nudge strategy panel */
+.nudge-panel{margin:0 12px 10px;background:#161B22;border-radius:12px;border:1px solid #21262D;padding:13px;position:relative;overflow:hidden}
+.nudge-bg{position:absolute;right:-4px;top:-4px;font-size:56px;opacity:.06;pointer-events:none;line-height:1}
+.nudge-lbl{font-size:9px;font-weight:700;letter-spacing:.18em;color:#8B949E;text-transform:uppercase;margin-bottom:7px}
+.nudge-name{font-size:12px;font-weight:700;color:#E6EDF3;display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.ndot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.nudge-desc{font-size:11px;line-height:1.6;color:#7D8590;font-weight:500}
+
+/* Nurse card */
+.nurse-card{margin:0 12px 10px;background:#0D1117;border-radius:11px;border:1px solid #21262D;padding:12px;display:flex;align-items:center;gap:11px}
+.nurse-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3730A3,#6366F1);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 4px 10px rgba(99,102,241,.3)}
+.nurse-lbl{font-size:9px;font-weight:700;letter-spacing:.15em;color:#6366F1;text-transform:uppercase;margin-bottom:1px}
+.nurse-nm{font-size:12px;font-weight:700;color:#C9D1D9}
+.nurse-sp{font-size:10px;color:#6366F1;font-style:italic}
+
+/* Appointment card */
+.appt-card{margin:0 12px 16px;background:#fff;border-radius:12px;padding:14px;border:1px solid #E5E7EB}
+.appt-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.appt-lbl{font-size:9px;font-weight:700;letter-spacing:.18em;color:#9CA3AF;text-transform:uppercase}
+.appt-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.appt-icon{font-size:13px;flex-shrink:0}
+.appt-txt{font-size:12px;font-weight:600;color:#4B5563}
+.appt-txt.b{font-weight:700;color:#111827;font-size:13px}
+.appt-txt.sm{font-size:11px;color:#9CA3AF}
+.cancel-appt-btn{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border:1px solid #FECACA;border-radius:8px;color:#EF4444;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;background:#fff;width:100%;transition:background .15s}
+.cancel-appt-btn:hover{background:#FFF5F5}
+.win-row{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid #F3F4F6}
+.win-lbl{font-size:9px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:.1em}
+
+/* ─── MAIN CHAT ─── */
+#main{flex:1;display:flex;flex-direction:column;background:#F6F8FA;min-width:0}
+
+.chat-hdr{padding:11px 20px;border-bottom:1px solid #E5E7EB;background:#fff;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:#AAFF00;box-shadow:0 0 7px #AAFF00AA;animation:pls 2.5s infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.5}}
+.hdr-div{width:1px;height:13px;background:#E5E7EB}
+.hdr-lbl{font-size:12px;font-weight:600;color:#6B7280}
+.hdr-pt{font-size:12px;font-weight:600;color:#9CA3AF}
+.hdr-r{margin-left:auto;font-size:11px;color:#CBD5E0;font-weight:500}
+
+.msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.msgs::-webkit-scrollbar{width:4px}
+.msgs::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:2px}
+
+.msg-wrap{display:flex;animation:fup .2s ease}
+@keyframes fup{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg-wrap.user{justify-content:flex-end}
+.bubble{max-width:76%;padding:12px 15px;font-size:13px;line-height:1.65;font-weight:500;white-space:pre-wrap}
+.bubble.ai{background:#fff;color:#111827;border:1px solid #E5E7EB;border-radius:4px 16px 16px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.bubble.user{background:#0969DA;color:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 2px 8px rgba(9,105,218,.25)}
+
+.typing-wrap{display:flex;animation:fup .2s ease}
+.typing-bbl{padding:11px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:4px 16px 16px 16px;display:flex;gap:4px;align-items:center;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.td{width:6px;height:6px;border-radius:50%;background:#CBD5E0;animation:bnc 1.4s infinite}
+.td:nth-child(2){animation-delay:.18s}
+.td:nth-child(3){animation-delay:.36s}
+@keyframes bnc{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-4px);opacity:1}}
+
+/* ── Response buttons ── */
+.resp-area{display:flex;flex-direction:column;gap:10px;animation:fup .2s ease}
+.resp-area-lbl{font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:.1em}
+.btns-row{display:flex;flex-wrap:wrap;gap:7px}
+.rbtn{padding:8px 15px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;background:#fff;font-family:'Outfit',sans-serif;border:1.5px solid transparent}
+.rbtn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.rbtn:active{transform:translateY(0)}
+.c-green{color:#16A34A;border-color:#86EFAC}.c-green:hover{background:#F0FDF4}
+.c-blue{color:#2563EB;border-color:#93C5FD}.c-blue:hover{background:#EFF6FF}
+.c-red{color:#DC2626;border-color:#FCA5A5}.c-red:hover{background:#FFF5F5}
+.c-amber{color:#B45309;border-color:#FCD34D}.c-amber:hover{background:#FFFBEB}
+.c-purple{color:#7C3AED;border-color:#C4B5FD}.c-purple:hover{background:#F5F3FF}
+.c-indigo{color:#4338CA;border-color:#A5B4FC}.c-indigo:hover{background:#EEF2FF}
+.c-gray{color:#6B7280;border-color:#D1D5DB}.c-gray:hover{background:#F9FAFB}
+.c-teal{color:#0D9488;border-color:#5EEAD4}.c-teal:hover{background:#F0FDFA}
+.c-rose{color:#BE123C;border-color:#FDA4AF}.c-rose:hover{background:#FFF1F2}
+
+/* Slot picker */
+.slots-wrap{display:flex;gap:9px;flex-wrap:wrap;animation:fup .2s ease}
+.slot-card{padding:12px 15px;background:#fff;border:2px solid #E0E7FF;border-radius:12px;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;min-width:116px}
+.slot-card:hover{border-color:#6366F1;transform:translateY(-2px);box-shadow:0 4px 12px rgba(99,102,241,.15)}
+.slot-day{font-size:9px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.slot-date{font-size:15px;font-weight:800;color:#111827;margin-bottom:1px}
+.slot-time{font-size:12px;font-weight:600;color:#4F46E5}
+.slot-hint{font-size:10px;color:#94A3B8;font-weight:500;letter-spacing:.05em}
+
+/* Address verify */
+.addr-card{padding:14px 15px;background:#EEF2FF;border-left:3px solid #6366F1;border-radius:0 10px 10px 0;max-width:330px;animation:fup .2s ease}
+.addr-title{font-size:11px;font-weight:700;color:#4338CA;margin-bottom:8px}
+.addr-text{font-size:13px;color:#374151;font-style:italic;font-weight:500;margin-bottom:11px}
+.addr-btns{display:flex;gap:7px}
+.addr-btn{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .12s}
+
+/* Calendar card */
+.cal-card{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:300px;box-shadow:0 1px 4px rgba(0,0,0,.05);animation:fup .2s ease}
+.cal-info{flex:1}
+.cal-dt{font-size:12px;font-weight:700;color:#111827}
+.cal-loc{font-size:10px;color:#9CA3AF;font-weight:500}
+.cal-btn,.cal-added{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.cal-btn{background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .12s}
+.cal-btn:hover{background:#DBEAFE}
+.cal-added{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+
+/* Library grid */
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;animation:fup .2s ease}
+.lib-item{padding:9px;border-radius:9px;cursor:pointer;transition:all .12s}
+.lib-item:hover{transform:translateY(-1px)}
+.lib-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.lib-ttl{font-size:12px;font-weight:600;color:#111827;line-height:1.3}
+
+/* Hint box */
+.hint-box{padding:9px 13px;border-radius:9px;font-size:11px;font-weight:600;max-width:260px;animation:fup .2s ease}
+
+/* Stats display */
+.stats-card{padding:14px;background:#111827;border:1px solid #374151;border-radius:12px;max-width:360px;animation:fup .2s ease}
+.stat-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+.stat-row:last-child{margin-bottom:0}
+.stat-ico{font-size:16px;flex-shrink:0;line-height:1.5}
+.stat-txt{font-size:13px;color:#D1D5DB;font-weight:500;line-height:1.5}
+
+/* ── Footer input ── */
+.chat-footer{padding:13px 20px;border-top:1px solid #E5E7EB;background:#fff;flex-shrink:0}
+.inp-row{display:flex;gap:8px}
+.chat-inp{flex:1;padding:10px 14px;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:10px;font-size:13px;font-weight:500;color:#111827;font-family:'Outfit',sans-serif;outline:none;transition:all .15s}
+.chat-inp:focus{border-color:#0969DA;box-shadow:0 0 0 3px rgba(9,105,218,.1)}
+.send-btn{width:42px;height:42px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:17px}
+.send-btn.on{background:#0969DA;box-shadow:0 3px 10px rgba(9,105,218,.25)}
+.send-btn.off{background:#F3F4F6;cursor:default}
+
+/* ── Article Modal ── */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+#modal-overlay.open{display:flex}
+#modal-panel{background:#fff;border-radius:20px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.25);overflow:hidden;animation:mfup .22s ease}
+@keyframes mfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.modal-hdr{padding:22px 26px 18px;border-bottom:1px solid #F3F4F6;flex-shrink:0}
+.modal-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.modal-type-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.08em}
+.modal-dur{font-size:11px;color:#9CA3AF;font-weight:600;display:flex;align-items:center;gap:4px}
+.modal-title{font-size:22px;font-weight:800;color:#111827;letter-spacing:-.3px;line-height:1.2}
+.modal-close{position:absolute;top:16px;right:20px;width:34px;height:34px;border-radius:50%;background:#F3F4F6;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#6B7280;transition:all .15s}
+.modal-close:hover{background:#E5E7EB;color:#111827}
+.modal-body{padding:24px 26px 28px;overflow-y:auto;flex:1;line-height:1.75;color:#374151;font-size:14px}
+.modal-body h2{font-size:14px;font-weight:800;color:#111827;text-transform:uppercase;letter-spacing:.08em;margin:22px 0 8px;padding-top:6px;border-top:1px solid #F3F4F6}
+.modal-body h2:first-child{margin-top:0;border-top:none;padding-top:0}
+.modal-body p{margin-bottom:12px;font-weight:500}
+.modal-body ul{margin:0 0 12px 18px;display:flex;flex-direction:column;gap:5px}
+.modal-body li{font-weight:500}
+.modal-body li::marker{color:#9CA3AF}
+.modal-callout{background:#F8FAFF;border-left:3px solid #6366F1;border-radius:0 10px 10px 0;padding:12px 15px;margin:14px 0;font-size:13px;font-weight:600;color:#374151}
+.modal-callout.green{background:#F0FDF4;border-color:#22C55E}
+.modal-callout.amber{background:#FFFBEB;border-color:#F59E0B}
+.modal-callout.red{background:#FFF5F5;border-color:#EF4444}
+.modal-table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:13px}
+.modal-table th{background:#F9FAFB;padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid #E5E7EB}
+.modal-table td{padding:8px 12px;border-bottom:1px solid #F3F4F6;font-weight:500;color:#374151;vertical-align:top}
+.modal-table tr:last-child td{border-bottom:none}
+.modal-footer{padding:16px 26px;border-top:1px solid #F3F4F6;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-footer-note{font-size:11px;color:#9CA3AF;font-weight:500}
+.modal-done-btn{padding:9px 22px;background:#0969DA;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+.modal-done-btn:hover{background:#0757B5}
+
+/* ── Feature Lab ── */
+.lab-btn{margin-left:auto;padding:6px 14px;background:#0D1117;color:#AAFF00;border:1.5px solid #AAFF0035;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:6px;transition:all .15s;flex-shrink:0}
+.lab-btn:hover{background:#161B22;border-color:#AAFF0060;box-shadow:0 0 12px rgba(170,255,0,.1)}
+
+#cap-overlay{position:fixed;inset:0;background:#F0F2F5;z-index:90;display:none;flex-direction:column;overflow:hidden}
+#cap-overlay.open{display:flex}
+
+/* Dark brand header */
+.cap-hdr{padding:0 28px;border-bottom:1px solid #21262D;background:#0D1117;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-shrink:0;height:56px}
+.cap-brand{display:flex;align-items:center;gap:12px}
+.cap-brand-name{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:#AAFF00;letter-spacing:-.5px;line-height:1}
+.cap-brand-div{width:1px;height:16px;background:#2D333B}
+.cap-brand-platform{font-size:12px;font-weight:600;color:#8B949E;letter-spacing:.01em}
+.cap-brand-lab{font-size:12px;font-weight:700;color:#C9D1D9;display:flex;align-items:center;gap:6px}
+.cap-hdr-right{display:flex;align-items:center;gap:12px}
+.cap-legend{display:flex;align-items:center;gap:14px;padding:5px 13px;background:#161B22;border:1px solid #21262D;border-radius:8px}
+.cap-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#8B949E}
+.cap-back-btn{padding:7px 14px;background:#21262D;border:1px solid #30363D;border-radius:8px;font-size:12px;font-weight:700;color:#C9D1D9;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;display:flex;align-items:center;gap:6px}
+.cap-back-btn:hover{background:#30363D;color:#E6EDF3}
+
+.cap-grid{flex:1;overflow-y:auto;padding:20px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-content:start}
+.cap-grid::-webkit-scrollbar{width:4px}
+.cap-grid::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:2px}
+
+/* CTA bar at bottom */
+.cap-cta{padding:14px 28px;border-top:1px solid #E5E7EB;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-shrink:0}
+.cap-cta-left{display:flex;align-items:center;gap:14px}
+.cap-cta-icon{font-size:26px}
+.cap-cta-title{font-size:14px;font-weight:800;color:#111827}
+.cap-cta-sub{font-size:11px;color:#6B7280;font-weight:500;margin-top:2px}
+.cap-cta-btn{padding:11px 28px;background:#0D1117;color:#AAFF00;border:none;border-radius:11px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;display:flex;align-items:center;gap:8px;letter-spacing:-.1px;white-space:nowrap;flex-shrink:0}
+.cap-cta-btn:hover{background:#161B22;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+
+.cap-card{background:#fff;border-radius:16px;border:1px solid #E5E7EB;padding:18px;display:flex;flex-direction:column;gap:13px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:opacity .2s,box-shadow .15s}
+.cap-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.cap-card.is-off{opacity:.55}
+
+/* Card top row */
+.cap-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cap-id{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.cap-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.cap-name{font-size:13px;font-weight:800;color:#111827;line-height:1.3}
+.cap-on-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+.is-on-lbl{color:#16A34A}
+.is-off-lbl{color:#9CA3AF}
+
+/* Toggle */
+.tog{width:40px;height:23px;border-radius:12px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;padding:0;margin-top:2px}
+.tog.on{background:#22C55E}
+.tog.off{background:#D1D5DB}
+.tog-k{position:absolute;top:3.5px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;pointer-events:none}
+.tog.on .tog-k{left:21px}
+.tog.off .tog-k{left:3px}
+
+/* Why box */
+.cap-why{background:#F9FAFB;border-radius:9px;padding:11px 13px;border-left:3px solid #E5E7EB}
+.cap-why-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#9CA3AF;margin-bottom:5px}
+.cap-why-txt{font-size:11px;line-height:1.65;color:#6B7280;font-weight:500}
+
+/* Demo section */
+.cap-demo{display:flex;flex-direction:column;gap:8px}
+.cap-demo-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#9CA3AF}
+.cap-demo-inner{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+
+/* Demo action buttons (pill style matching chat) */
+.d-btn{padding:6px 12px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#fff;font-family:'Outfit',sans-serif;border:1.5px solid transparent;transition:all .15s;white-space:nowrap}
+.d-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.1)}
+.d-green{color:#16A34A;border-color:#86EFAC}.d-green:hover{background:#F0FDF4}
+.d-blue{color:#2563EB;border-color:#93C5FD}.d-blue:hover{background:#EFF6FF}
+.d-red{color:#DC2626;border-color:#FCA5A5}.d-red:hover{background:#FFF5F5}
+.d-amber{color:#B45309;border-color:#FCD34D}.d-amber:hover{background:#FFFBEB}
+.d-purple{color:#7C3AED;border-color:#C4B5FD}.d-purple:hover{background:#F5F3FF}
+.d-indigo{color:#4338CA;border-color:#A5B4FC}.d-indigo:hover{background:#EEF2FF}
+.d-teal{color:#0D9488;border-color:#5EEAD4}.d-teal:hover{background:#F0FDFA}
+.d-gray{color:#6B7280;border-color:#D1D5DB}.d-gray:hover{background:#F9FAFB}
+
+/* Chat message capability tooltip */
+.bbl-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:5px;max-width:76%}
+.cap-chips{display:flex;flex-wrap:wrap;gap:5px}
+.cap-chip{display:flex;padding:3px 9px 3px 7px;background:#1E293B;color:#CBD5E1;font-size:10px;font-weight:700;border-radius:6px;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.01em}
+.cap-chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+
+/* Strategy pills */
+.s-pill{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+
+/* Mini slot cards */
+.m-slot{padding:8px 11px;background:#fff;border:2px solid #E0E7FF;border-radius:10px;min-width:86px;flex-shrink:0}
+.m-slot-day{font-size:8px;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.m-slot-date{font-size:13px;font-weight:800;color:#111827;margin-bottom:1px}
+.m-slot-time{font-size:10px;font-weight:600;color:#4F46E5}
+.m-slot-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;margin-top:4px;display:inline-block}
+.m-slot-blocked{opacity:.45;position:relative}
+.m-slot-blocked::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent,transparent 3px,rgba(220,38,38,.1) 3px,rgba(220,38,38,.1) 4px);border-radius:9px}
+
+/* Mini calendar card */
+.m-cal{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-cal-info{flex:1}
+.m-cal-dt{font-size:11px;font-weight:700;color:#111827}
+.m-cal-loc{font-size:9px;color:#9CA3AF;font-weight:500}
+
+/* Copay card */
+.m-copay{padding:11px 13px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px}
+.m-copay-prog{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#92400E;margin-bottom:3px}
+.m-copay-amt{font-size:20px;font-weight:800;color:#D97706;line-height:1.1}
+.m-copay-sub{font-size:10px;color:#92400E;font-weight:600;margin-bottom:8px}
+
+/* Waitlist card */
+.m-waitlist{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 13px;font-size:11px;font-weight:600;color:#15803D}
+.m-waitlist-flow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.wl-tag{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+
+/* Escalation card */
+.m-esc{padding:10px 13px;background:#F0FDFA;border-left:3px solid #14B8A6;border-radius:0 10px 10px 0;font-size:12px;font-weight:600;color:#0D9488}
+
+/* Address verify demo */
+.m-addr{padding:10px 13px;background:#EEF2FF;border-left:3px solid #6366F1;border-radius:0 10px 10px 0;font-size:11px;font-weight:600;color:#4338CA;display:flex;flex-direction:column;gap:7px}
+
+/* Lib cards in demo */
+.m-lib{padding:8px 10px;border-radius:9px;cursor:pointer;transition:all .12s;min-width:110px;flex:1}
+.m-lib:hover{transform:translateY(-1px)}
+.m-lib-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.m-lib-ttl{font-size:11px;font-weight:700;color:#111827;line-height:1.3}
+
+/* Status badges */
+.status-confirmed{background:#DCFCE7;color:#15803D}
+.status-canceled{background:#FEE2E2;color:#DC2626}
+.status-pending{background:#FEF3C7;color:#B45309}
+</style>
+</head>
+<body>
+
+<aside id="sb">
+  <div class="brand">
+    <div class="brand-row">
+      <span class="brand-name">nudge.</span>
+    </div>
+    <div class="brand-sub">Infusion Adherence Platform · Patient View</div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-lbl">👤 Clinical Personas</div>
+    <div class="sb-sublbl">Select a patient to begin a conversation</div>
+    <div class="risk-legend">
+      <div class="risk-legend-title">⚠ No-show risk score</div>
+      <div class="rl-item"><div class="rl-dot" style="background:#22C55E"></div>Low</div>
+      <div class="rl-item"><div class="rl-dot" style="background:#D97706"></div>Medium</div>
+      <div class="rl-item"><div class="rl-dot" style="background:#EA580C"></div>Med-High</div>
+      <div class="rl-item"><div class="rl-dot" style="background:#DC2626"></div>High</div>
+      <div class="rl-item"><div class="rl-dot" style="background:#991B1B"></div>Very High</div>
+    </div>
+    <div class="pt-list" id="pt-list"></div>
+  </div>
+
+  <div class="nudge-panel" id="nudge-panel">
+    <div class="nudge-bg" id="nudge-bg"></div>
+    <div class="nudge-lbl">🧠 Behavioral Strategy</div>
+    <div class="nudge-name" id="nudge-name"></div>
+    <div class="nudge-desc" id="nudge-desc"></div>
+  </div>
+
+  <div class="nurse-card">
+    <div class="nurse-av" id="nurse-av"></div>
+    <div>
+      <div class="nurse-lbl">Care Team</div>
+      <div class="nurse-nm" id="nurse-nm"></div>
+      <div class="nurse-sp" id="nurse-sp"></div>
+    </div>
+  </div>
+
+  <div class="appt-card">
+    <div class="appt-hdr">
+      <span class="appt-lbl">Next Infusion</span>
+      <span class="risk-badge" id="status-badge"></span>
+    </div>
+    <div class="appt-row"><span class="appt-icon">📅</span><span class="appt-txt b" id="appt-date"></span></div>
+    <div class="appt-row"><span class="appt-icon">🕐</span><span class="appt-txt" id="appt-time"></span></div>
+    <div class="appt-row"><span class="appt-icon">👤</span><span class="appt-txt" id="appt-nurse2"></span></div>
+    <div class="appt-row"><span class="appt-icon">📍</span><span class="appt-txt sm">Main Infusion Suite, Floor 4</span></div>
+    <button class="cancel-appt-btn" id="cancel-appt-btn" onclick="handleCancelBtn()">✕ Cancel Appointment</button>
+    <div class="win-row">
+      <span class="win-lbl">Window</span>
+      <span id="win-val" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em"></span>
+    </div>
+  </div>
+</aside>
+
+<main id="main">
+  <div class="chat-hdr">
+    <div class="hdr-dot"></div>
+    <span class="hdr-lbl">Patient Assistant</span>
+    <div class="hdr-div"></div>
+    <span class="hdr-pt" id="hdr-pt"></span>
+    <div class="hdr-r" id="hdr-r"></div>
+    <button class="lab-btn" onclick="openCapabilities()">🔬 Feature Lab</button>
+  </div>
+
+  <div class="msgs" id="msgs"></div>
+
+  <div class="chat-footer">
+    <div class="inp-row">
+      <input class="chat-inp" id="chat-inp" placeholder="Type a message..." oninput="updateSendBtn()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleSend()}">
+      <button class="send-btn off" id="send-btn" onclick="handleSend()">➤</button>
+    </div>
+  </div>
+</main>
+
+
+<!-- ── Article Modal ── -->
+<div id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div id="modal-panel">
+    <div class="modal-hdr" style="position:relative">
+      <div class="modal-meta">
+        <span class="modal-type-badge" id="modal-badge"></span>
+        <span class="modal-dur" id="modal-dur"></span>
+      </div>
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeArticle()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <span class="modal-footer-note">For informational purposes only. Always follow your care team's guidance.</span>
+      <button class="modal-done-btn" onclick="closeArticle()">Done reading</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Feature Lab Overlay ── -->
+<div id="cap-overlay">
+  <div class="cap-hdr">
+    <div class="cap-brand">
+      <span class="cap-brand-name">nudge.</span>
+      <div class="cap-brand-div"></div>
+      <span class="cap-brand-platform">Infusion Adherence Platform</span>
+      <div class="cap-brand-div"></div>
+      <span class="cap-brand-lab">🔬 Feature Lab</span>
+    </div>
+    <div class="cap-hdr-right">
+      <button class="cap-cta-btn" onclick="closeCapabilities()">💬 Chat with Patients →</button>
+    </div>
+  </div>
+  <div class="cap-grid" id="cap-grid"></div>
+  <div class="cap-cta">
+    <div class="cap-cta-left">
+      <div class="cap-cta-icon">💬</div>
+      <div>
+        <div class="cap-cta-title">Ready to see these in a real conversation?</div>
+        <div class="cap-cta-sub">Pick any patient persona in the sidebar and test every capability live — each AI message will show which feature generated it</div>
+      </div>
+    </div>
+    <button class="cap-cta-btn" onclick="closeCapabilities()">💬 Try it: Chat with Patients →</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// PATIENT DATA
+// ═══════════════════════════════════════════════════
+const PATIENTS = [
+  { id:'daniel', name:'Daniel Brooks', firstName:'Daniel', persona:'Consistent Optimizer', age:34,
+    adherence:96, risk:'LOW', riskColor:'#22C55E', riskBg:'#DCFCE7',
+    nurse:'Nurse Sarah', nurseInitial:'S', nurseSpec:'Senior Infusion RN',
+    apptDate:'Thursday, November 6', apptShort:'Nov 6', apptTime:'10:00 AM',
+    windowStatus:'OPTIMAL WINDOW', windowColor:'#16A34A',
+    strategy:'Positive Reinforcement', strategyColor:'#22C55E', strategyEmoji:'⚡',
+    strategyDesc:'Reinforces on-time streaks and measurable progress. Minimal intervention — celebrates consistency.',
+    defaultConfirmed:false },
+  { id:'jessica', name:'Jessica Miller', firstName:'Jessica', persona:'Busy Deferrer', age:41,
+    adherence:72, risk:'MEDIUM', riskColor:'#D97706', riskBg:'#FEF3C7',
+    nurse:'Nurse David', nurseInitial:'D', nurseSpec:'Gastroenterology RN',
+    apptDate:'Saturday, November 1', apptShort:'Nov 1', apptTime:'11:00 AM',
+    windowStatus:'DELAYED — 9 WEEKS', windowColor:'#D97706',
+    strategy:'Loss Aversion', strategyColor:'#EF4444', strategyEmoji:'📉',
+    strategyDesc:'Highlights time-sensitive flare risk. Offers frictionless weekend/evening slots to remove scheduling friction.',
+    defaultConfirmed:false },
+  { id:'marcus', name:'Marcus Johnson', firstName:'Marcus', persona:'Financially Strained', age:29,
+    adherence:61, risk:'HIGH', riskColor:'#DC2626', riskBg:'#FEE2E2',
+    nurse:'Nurse Elena', nurseInitial:'E', nurseSpec:'Infusion RN · Financial Navigation',
+    apptDate:'Monday, November 3', apptShort:'Nov 3', apptTime:'09:00 AM',
+    windowStatus:'OVERDUE — 10 WEEKS', windowColor:'#DC2626',
+    strategy:'Cost Framing', strategyColor:'#F59E0B', strategyEmoji:'💰',
+    strategyDesc:'Opens with copay assistance options. Treats affordability as the first conversation, not an afterthought.',
+    defaultConfirmed:false },
+  { id:'linda', name:'Linda Garcia', firstName:'Linda', persona:'Logistical Barrier', age:67,
+    adherence:68, risk:'MED-HIGH', riskColor:'#EA580C', riskBg:'#FFEDD5',
+    nurse:'Nurse Maria', nurseInitial:'M', nurseSpec:'Geriatric Infusion RN',
+    apptDate:'Wednesday, November 5', apptShort:'Nov 5', apptTime:'09:30 AM',
+    windowStatus:'VARIABLE — 8–10 WKS', windowColor:'#EA580C',
+    strategy:'Facilitation', strategyColor:'#6366F1', strategyEmoji:'🚗',
+    strategyDesc:'Proactively removes logistical friction. Ride scheduling and coordination before the patient has to ask.',
+    defaultConfirmed:false },
+  { id:'tyler', name:'Tyler Nguyen', firstName:'Tyler', persona:'Disengaged Skeptic', age:38,
+    adherence:43, risk:'VERY HIGH', riskColor:'#991B1B', riskBg:'#FEE2E2',
+    nurse:'Nurse James', nurseInitial:'J', nurseSpec:'Complex Care RN',
+    apptDate:'Friday, November 7', apptShort:'Nov 7', apptTime:'02:00 PM',
+    windowStatus:'CRITICAL — 12+ WEEKS', windowColor:'#991B1B',
+    strategy:'Social Proof + Re-engagement', strategyColor:'#7C3AED', strategyEmoji:'📊',
+    strategyDesc:'Uses peer outcome data and clinician reinforcement to rebuild trust. Persuasion before reminders.',
+    defaultConfirmed:false },
+];
+
+const LIBRARY = [
+  {title:'Understanding Infliximab',type:'Article',dur:'5 min',color:'#2563EB',bg:'#EFF6FF'},
+  {title:'Dietary Guidelines for IBD',type:'Guide',dur:'8 min',color:'#059669',bg:'#ECFDF5'},
+  {title:"Managing Crohn's Flares",type:'Protocol',dur:'6 min',color:'#D97706',bg:'#FFFBEB'},
+  {title:'Lab Results Explained',type:'Resource',dur:'4 min',color:'#7C3AED',bg:'#F5F3FF'},
+];
+
+const ARTICLES = [
+  {
+    idx:0,
+    body:`
+<h2>What is Infliximab?</h2>
+<p>Infliximab (brand name: Remicade) is a biologic medication used to treat Crohn's disease, ulcerative colitis, rheumatoid arthritis, and several other inflammatory conditions. It belongs to a class of drugs called <strong>TNF-alpha inhibitors</strong> — medicines that target and block a specific protein in the immune system responsible for causing inflammation.</p>
+<p>Unlike traditional anti-inflammatory drugs (such as steroids or mesalamine), infliximab works at a very precise point in the inflammatory chain, which is why it can be highly effective for patients who haven't responded to other treatments.</p>
+
+<h2>How Does It Work?</h2>
+<p>In Crohn's disease, the immune system mistakenly attacks the lining of the digestive tract, producing a protein called <strong>Tumor Necrosis Factor-alpha (TNF-α)</strong>. This protein drives the chronic inflammation that causes symptoms like abdominal pain, diarrhea, fatigue, and bowel damage.</p>
+<p>Infliximab is a laboratory-made antibody that binds directly to TNF-α and neutralizes it before it can trigger an inflammatory response. Think of it as a key that fits precisely into a lock — when infliximab binds to TNF-α, inflammation can't start.</p>
+<div class="modal-callout green">💡 Most patients begin to notice symptom improvement within 2–6 weeks of starting infliximab. Full clinical benefit often develops over the first 3–4 infusions.</div>
+
+<h2>What Happens During an Infusion?</h2>
+<p>Infliximab is given by intravenous (IV) infusion, typically at a certified infusion center. A nurse will insert a small IV line, usually in your arm, and the medication drips slowly into your bloodstream over approximately 2 hours.</p>
+<ul>
+  <li>You'll be monitored throughout for any reactions (rare, but your team is prepared)</li>
+  <li>You can bring reading material, headphones, or simply relax</li>
+  <li>Vital signs (blood pressure, heart rate) are checked before, during, and after</li>
+  <li>Most patients can drive themselves home and resume normal activity the same day</li>
+</ul>
+
+<h2>Why Does Timing Matter?</h2>
+<p>Infliximab has a predictable pattern in your body: after each infusion, the drug level peaks and then gradually declines until your next scheduled dose. Maintaining consistent spacing between infusions keeps the drug level within its <strong>therapeutic range</strong> — the concentration at which it effectively controls inflammation.</p>
+<div class="modal-callout">⏱ The clinical safety window for rescheduling is <strong>±3 days</strong> from your scheduled date. Beyond this range, drug levels can fall below the threshold needed to prevent a flare.</div>
+<p>This is why your care team emphasizes consistency. Missing or significantly delaying an infusion isn't just an inconvenience — it can allow inflammation to return, sometimes requiring higher doses or additional medications to regain control.</p>
+
+<h2>Common Side Effects</h2>
+<p>Most people tolerate infliximab well. The most common side effects include:</p>
+<ul>
+  <li><strong>Infusion reactions:</strong> Mild flushing, headache, or nausea during the infusion (your nurse will manage these promptly)</li>
+  <li><strong>Increased susceptibility to infections:</strong> Because infliximab modulates your immune system, you may be more prone to colds or respiratory infections</li>
+  <li><strong>Fatigue:</strong> Some patients feel tired for 1–2 days after an infusion</li>
+</ul>
+<div class="modal-callout red">🚨 Contact your care team immediately if you develop signs of infection (fever over 38°C / 100.4°F, chills, persistent cough) within 2 weeks of an infusion.</div>
+<p>Serious side effects are uncommon. Your care team will review your individual risk profile and monitor you with regular blood tests and clinical assessments.</p>`
+  },
+  {
+    idx:1,
+    body:`
+<h2>Food as Part of Your Treatment Plan</h2>
+<p>While no specific diet can replace infliximab or other medical treatments for Crohn's disease, what you eat significantly affects how you feel day-to-day. The right dietary choices can reduce inflammation, support gut healing, prevent nutritional deficiencies, and help manage symptoms during flares.</p>
+<p>It's important to note that Crohn's is highly individual — what triggers symptoms in one person may be perfectly tolerated by another. The goal is to identify your personal pattern, not to follow a rigid universal list.</p>
+
+<h2>General Principles</h2>
+<ul>
+  <li><strong>Eat smaller, more frequent meals</strong> — 5–6 small meals a day reduces the burden on an inflamed gut compared to 3 large ones</li>
+  <li><strong>Chew thoroughly</strong> — proper chewing breaks food down before it reaches a potentially sensitive intestine</li>
+  <li><strong>Keep a food diary</strong> — tracking what you eat and how you feel is the most reliable way to identify your personal triggers</li>
+  <li><strong>Don't skip meals during remission</strong> — consistent nutrition helps maintain the gut lining and supports immune function</li>
+</ul>
+
+<h2>Foods That Generally Help</h2>
+<table class="modal-table">
+  <tr><th>Food Group</th><th>Good Options</th><th>Why It Helps</th></tr>
+  <tr><td>Protein</td><td>Eggs, white fish, tofu, well-cooked chicken</td><td>Supports tissue repair; easy to digest</td></tr>
+  <tr><td>Carbohydrates</td><td>White rice, oatmeal, plain pasta, boiled potatoes</td><td>Low-residue; gentle on the intestine</td></tr>
+  <tr><td>Fruits</td><td>Bananas, melons, cooked or canned fruits without skin</td><td>Soft texture; low fiber during flares</td></tr>
+  <tr><td>Vegetables</td><td>Cooked carrots, zucchini, squash, peeled cucumber</td><td>Easier to digest than raw or cruciferous</td></tr>
+  <tr><td>Fats</td><td>Olive oil, avocado (if tolerated), nut butters</td><td>Anti-inflammatory properties; calorie-dense for weight maintenance</td></tr>
+</table>
+<div class="modal-callout green">💧 Hydration is critical — aim for 8–10 glasses of water daily. If you have frequent loose stools, you may need electrolyte drinks to replace lost sodium and potassium.</div>
+
+<h2>Foods to Approach with Caution</h2>
+<ul>
+  <li><strong>High-fiber foods</strong> (raw vegetables, whole grains, beans) — can be difficult to process during active disease</li>
+  <li><strong>Dairy products</strong> — many Crohn's patients have secondary lactose intolerance; test your tolerance individually</li>
+  <li><strong>Fatty, greasy, or fried foods</strong> — can worsen diarrhea and cramping</li>
+  <li><strong>Spicy foods and caffeine</strong> — known gut irritants for many patients</li>
+  <li><strong>Alcohol</strong> — can irritate the gut lining and interact with some medications</li>
+  <li><strong>Ultra-processed foods</strong> — high in additives that may promote gut inflammation</li>
+</ul>
+
+<h2>Nutritional Supplements to Discuss with Your Doctor</h2>
+<p>Crohn's disease commonly leads to nutritional deficiencies due to malabsorption and dietary restrictions. Your care team may recommend:</p>
+<ul>
+  <li><strong>Vitamin D</strong> — frequently low in IBD patients; important for immune regulation and bone health</li>
+  <li><strong>Vitamin B12</strong> — especially if you have disease in the terminal ileum</li>
+  <li><strong>Iron</strong> — to address anemia from blood loss or malabsorption</li>
+  <li><strong>Calcium</strong> — important if dairy is restricted or if you take steroids</li>
+  <li><strong>Zinc</strong> — supports wound healing and immune function</li>
+</ul>
+<div class="modal-callout">🩺 Ask your care team about a referral to a registered dietitian who specializes in IBD — they can create a plan tailored to your specific disease location, activity, and food preferences.</div>`
+  },
+  {
+    idx:2,
+    body:`
+<h2>What Is a Flare?</h2>
+<p>A Crohn's flare is a period when your disease becomes more active — symptoms that were well-controlled suddenly return or worsen. Flares can range from mild to severe, and they can happen even when you're taking your medication as prescribed.</p>
+<p>Understanding what a flare looks and feels like — and knowing what to do — helps you respond quickly and avoid preventable complications.</p>
+
+<h2>Warning Signs to Watch For</h2>
+<p>Flares often give early signals before they become severe. Pay attention to:</p>
+<ul>
+  <li>Increased frequency of bowel movements (more than your usual baseline)</li>
+  <li>Return of abdominal cramping or pain, particularly after eating</li>
+  <li>Urgency — feeling like you can't wait to reach a bathroom</li>
+  <li>Blood or mucus in your stool</li>
+  <li>Significant fatigue, especially if new or worsening</li>
+  <li>Unintended weight loss or reduced appetite</li>
+  <li>Fever (temperature above 38°C / 100.4°F)</li>
+  <li>Joint pain or skin changes (some Crohn's patients experience these during active disease)</li>
+</ul>
+<div class="modal-callout amber">⚠ Catching a flare early — ideally within the first few days of noticing symptoms — makes treatment significantly easier and faster. Don't wait for symptoms to become severe before contacting your care team.</div>
+
+<h2>Immediate Steps When a Flare Begins</h2>
+<p><strong>1. Contact your care team promptly.</strong> Your nurse or gastroenterologist should know about a flare as soon as possible. They may want to run blood tests (CRP, full blood count) or perform a stool test (fecal calprotectin) to assess the level of inflammation.</p>
+<p><strong>2. Don't stop your infliximab.</strong> It can be tempting to wonder if your treatment has stopped working, but stopping infliximab abruptly can make things significantly harder to control. Continue your scheduled infusions unless specifically told otherwise by your doctor.</p>
+<p><strong>3. Adjust your diet temporarily.</strong> Move to soft, low-residue foods — white rice, plain broth, toast, cooked vegetables. Avoid high-fiber foods, raw vegetables, dairy, and anything you know irritates you. Stay well hydrated.</p>
+<p><strong>4. Rest.</strong> A flare is physically taxing. Reducing activity and prioritizing sleep supports recovery.</p>
+<p><strong>5. Manage stress.</strong> Stress doesn't cause Crohn's, but it's a well-documented trigger for flares. Breathing exercises, gentle movement (if comfortable), and reaching out to support networks can help.</p>
+
+<h2>When to Call Your Doctor — vs. Go to the Emergency Room</h2>
+<table class="modal-table">
+  <tr><th>Call Your Care Team</th><th>Go to Emergency Room</th></tr>
+  <tr><td>Symptoms worsening over 2–3 days</td><td>Severe, sudden abdominal pain</td></tr>
+  <tr><td>New blood in stool (small amounts)</td><td>Large amounts of blood in stool</td></tr>
+  <tr><td>Fever under 39°C (102°F)</td><td>Fever above 39°C (102°F)</td></tr>
+  <tr><td>Increased frequency but manageable</td><td>Unable to keep fluids down (vomiting)</td></tr>
+  <tr><td>Mild fatigue and reduced appetite</td><td>Signs of dehydration (dizziness, no urination)</td></tr>
+</table>
+<div class="modal-callout red">🚨 If you experience sudden, severe abdominal pain — particularly if it's constant rather than crampy — or if you feel faint, go to the emergency room. This could indicate a serious complication such as an obstruction or perforation.</div>
+
+<h2>After the Flare: Getting Back on Track</h2>
+<p>Once a flare is under control, your doctor may reassess your treatment plan. This could include:</p>
+<ul>
+  <li>Reviewing your infliximab drug levels (trough levels) to check whether the dose needs adjusting</li>
+  <li>Testing for anti-drug antibodies, which can sometimes cause treatment to become less effective</li>
+  <li>Temporary use of short-course corticosteroids to calm inflammation while the biologic resumes full effect</li>
+  <li>Discussing lifestyle factors that may have contributed to the flare</li>
+</ul>
+<p>The most important thing: keep your infusion appointments. Consistent, on-schedule dosing is the best protection against future flares.</p>`
+  },
+  {
+    idx:3,
+    body:`
+<h2>Why Lab Results Matter for Crohn's Patients</h2>
+<p>Regular blood and stool tests are an essential part of managing Crohn's disease. They give your care team an objective window into what's happening inside your body — often before you even feel a change in your symptoms. Understanding what each test measures helps you be a more informed partner in your care.</p>
+
+<h2>Key Tests and What They Measure</h2>
+
+<h2>C-Reactive Protein (CRP)</h2>
+<p>CRP is produced by the liver in response to inflammation anywhere in the body. It's one of the most sensitive markers your care team uses to track Crohn's disease activity.</p>
+<table class="modal-table">
+  <tr><th>Level</th><th>What It Suggests</th></tr>
+  <tr><td>Under 5 mg/L</td><td>Normal — low levels of inflammation</td></tr>
+  <tr><td>5–20 mg/L</td><td>Mildly elevated — worth monitoring</td></tr>
+  <tr><td>Above 20 mg/L</td><td>Elevated — may indicate active disease or other inflammation</td></tr>
+</table>
+<div class="modal-callout green">✓ A falling CRP over successive tests is a positive sign that your infliximab is working. A rising CRP between infusions may prompt your team to investigate further.</div>
+
+<h2>Fecal Calprotectin</h2>
+<p>This is a stool test that directly measures inflammation in the digestive tract. Unlike CRP (which reflects inflammation anywhere in the body), calprotectin is specific to the gut, making it particularly useful for IBD monitoring.</p>
+<ul>
+  <li><strong>Under 50 µg/g:</strong> Normal — intestinal inflammation is unlikely</li>
+  <li><strong>50–200 µg/g:</strong> Borderline — worth repeating or investigating</li>
+  <li><strong>Above 200 µg/g:</strong> Elevated — suggests active intestinal inflammation</li>
+</ul>
+<p>Your doctor may use calprotectin to decide whether a colonoscopy is needed, or to monitor your response to treatment over time.</p>
+
+<h2>Full Blood Count (FBC / CBC)</h2>
+<p>This is a broad panel that looks at your red blood cells, white blood cells, and platelets. For Crohn's patients, the most important values are:</p>
+<table class="modal-table">
+  <tr><th>Marker</th><th>Why It Matters in Crohn's</th><th>Normal Range (approx.)</th></tr>
+  <tr><td>Haemoglobin (Hb)</td><td>Low levels indicate anaemia, common in Crohn's due to bleeding or malabsorption</td><td>12–17 g/dL</td></tr>
+  <tr><td>White Blood Cells (WBC)</td><td>Infliximab can affect immunity; very low counts increase infection risk</td><td>4–11 × 10⁹/L</td></tr>
+  <tr><td>Platelets</td><td>Elevated platelets can indicate active inflammation</td><td>150–400 × 10⁹/L</td></tr>
+</table>
+
+<h2>Albumin</h2>
+<p>Albumin is a protein made by the liver. Low albumin levels in Crohn's patients can indicate poor nutrition (because the inflamed gut isn't absorbing nutrients properly), or active disease causing protein loss.</p>
+<ul>
+  <li><strong>Normal:</strong> 35–50 g/L</li>
+  <li><strong>Below 35 g/L:</strong> May suggest malnutrition, severe inflammation, or poor gut absorption — your team will discuss nutritional support</li>
+</ul>
+
+<h2>Infliximab Trough Levels</h2>
+<p>This blood test measures the concentration of infliximab remaining in your blood just before your next infusion — the "trough" point. Keeping trough levels within the therapeutic range is critical for the drug to work effectively.</p>
+<div class="modal-callout">🎯 Target trough level: typically <strong>3–7 µg/mL</strong> for Crohn's disease. Your gastroenterologist will aim to keep your levels in this range by adjusting dose or frequency if needed.</div>
+<p>Your team may also test for <strong>anti-drug antibodies (ADA)</strong> — proteins your immune system can occasionally develop against infliximab. If antibodies are detected, your doctor will discuss options, which may include dose optimisation or switching to a different biologic.</p>
+
+<h2>A Note on Interpreting Your Results</h2>
+<p>Lab results should always be interpreted in the context of how you're feeling, your clinical history, and your previous results. A single slightly-out-of-range value is rarely cause for alarm on its own. Your care team tracks trends over time — which is far more meaningful than any single data point.</p>
+<div class="modal-callout green">📋 Keep a personal record of your key lab values over time. Seeing the trend yourself — and understanding what each number means — makes you a more empowered participant in your own care.</div>`
+  }
+];
+
+
+// ═══════════════════════════════════════════════════
+// CONVERSATION FLOWS
+// Each node: { aiText, buttons: [{icon,label,color,userText,next}], special }
+// special: 'slots_std'|'slots_wknd'|'slots_both'|'address_verify'|'library'|'trivia'|'trivia_ty'|'stats'|'calendar'|'copay_confirm'
+// ═══════════════════════════════════════════════════
+const FLOWS = {
+
+daniel: {
+  greeting: {
+    aiText: "Daniel — 10 infusions in a row! 🌟\n\nYour CRP markers have been stable throughout your streak. Nurse Sarah is ready to make it 11.\n\nYour next infusion is Thursday, November 6 at 10:00 AM. Can you confirm?",
+    buttons: [
+      {icon:'✓',label:'Confirm Visit',color:'c-green',userText:"Yes, I'll be there.",next:'confirmed'},
+      {icon:'📅',label:'Change Time',color:'c-blue',userText:'I need to change the time.',next:'slots_intro'},
+      {icon:'✕',label:'Cancel',color:'c-red',userText:"I need to cancel.",next:'cancel_q'},
+    ]},
+  confirmed: {
+    aiText: "11 visits in a row — that's exceptional. ✨\n\nNurse Sarah has you confirmed at the Main Infusion Suite, Floor 4. See you Thursday at 10:00 AM.",
+    sideEffect:'confirm',
+    buttons: [
+      {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+      {icon:'🧠',label:'Health Trivia',color:'c-amber',userText:"I'd like to try health trivia.",next:'trivia_q'},
+      {icon:'📚',label:'Health Library',color:'c-blue',userText:"I'd like to explore the health library.",next:'library'},
+      {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+    ]},
+  calendar_added:{aiText:"✓ Added to your calendar. Reminder set for Wednesday evening.\n\nIs there anything else I can help with?",special:'calendar',buttons:[
+    {icon:'📚',label:'Health Library',color:'c-blue',userText:"I'd like to explore the health library.",next:'library'},
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+  ]},
+  slots_intro:{aiText:"Of course! Here are two openings within your ±3-day treatment window — both keep your infliximab levels on track with Nurse Sarah:",special:'slots_std',buttons:[]},
+  slot_nov7:{aiText:"Confirmed ✓ Friday, November 7 at 9:00 AM with Nurse Sarah.\n\nYour November 6th slot has been released to a patient on the waitlist.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'🧠',label:'Health Trivia',color:'c-amber',userText:"I'd like to try health trivia.",next:'trivia_q'},
+  ]},
+  slot_nov9:{aiText:"Confirmed ✓ Sunday, November 9 at 2:30 PM with Nurse Sarah.\n\nYour November 6th slot has been opened for another patient in need.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'📚',label:'Health Library',color:'c-blue',userText:"I'd like to explore the health library.",next:'library'},
+  ]},
+  cancel_q:{aiText:"Daniel, your 10-visit streak means your infliximab is working at optimal levels. Missing now could disrupt the stability you've built.\n\nWould you like a coordinator to help you find a better time?",sideEffect:'cancel',buttons:[
+    {icon:'📞',label:'Yes, please call me',color:'c-blue',userText:'Yes, please have someone call me.',next:'cancel_yes'},
+    {icon:'✕',label:"No, I'll manage",color:'c-gray',userText:"No, I'll handle it myself.",next:'cancel_no'},
+  ]},
+  cancel_yes:{aiText:"✓ A coordinator from Nurse Sarah's team will call within 2 hours. We'll find a time that works.\n\nYour November 6th slot is being held while we sort this out.",buttons:[]},
+  cancel_no:{aiText:"Understood. Please reach out when you're ready — your care record and streak will be here when you return.",buttons:[]},
+  trivia_q:{aiText:"Health trivia time! 🧠\n\nWhat is the clinical safety window (± days) for rescheduling an infliximab infusion without risking loss of therapeutic effect?",special:'trivia',buttons:[]},
+  trivia_right:{aiText:"✅ Exactly — ±3 days!\n\nWithin this window, serum levels stay in the therapeutic zone. This is why Nudge only ever proposes dates within ±3 days. You clearly know your treatment!",buttons:[
+    {icon:'📚',label:'Health Library',color:'c-blue',userText:"I'd like to see the health library.",next:'library'},
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+  ]},
+  trivia_wrong:{aiText:"The answer is ±3 days! 🎯\n\nWithin this window, your body maintains therapeutic serum levels — which is why your schedule is so precisely calibrated.",buttons:[
+    {icon:'📚',label:'Health Library',color:'c-blue',userText:"Let me see the health library.",next:'library'},
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+  ]},
+  library:{aiText:"Here are resources curated for patients on biologic therapy:",special:'library',buttons:[
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+  ]},
+  other_help:{aiText:"Of course — what can I help you with?",buttons:[
+    {icon:'🚌',label:'Transportation',color:'c-indigo',userText:'I have a transportation question.',next:'transport_q'},
+    {icon:'💳',label:'Co-pay Help',color:'c-teal',userText:'I have a co-pay question.',next:'copay_q'},
+    {icon:'👤',label:'Talk to Staff',color:'c-purple',userText:"I'd like to speak with staff.",next:'staff'},
+  ]},
+  transport_q:{aiText:"Happy to help with your commute. Which option works best for you?",buttons:[
+    {icon:'🚌',label:'Clinic Shuttle',color:'c-indigo',userText:"I'd like the clinic shuttle.",next:'shuttle_q'},
+    {icon:'🛡',label:'Insurance Ride',color:'c-teal',userText:"I'd like to use my insurance benefit.",next:'insurance'},
+    {icon:'📱',label:'Rideshare Voucher',color:'c-amber',userText:"I'd like a rideshare voucher.",next:'rideshare'},
+  ]},
+  shuttle_q:{aiText:"Is your pickup address still on file?\n\n📍 1500 Louisiana St, Houston, TX 77002",special:'address_verify',buttons:[]},
+  shuttle_ok:{aiText:"Clinic shuttle booked! 🚌\n\nPickup at 9:00 AM — one hour before your infusion. Nurse Sarah will be expecting you.",buttons:[
+    {icon:'✓',label:'All done',color:'c-green',userText:'Thanks, that covers it.',next:'done'},
+  ]},
+  shuttle_edit:{aiText:"Please type your updated pickup address below and I'll save it for the driver.",special:'address_edit',buttons:[]},
+  insurance:{aiText:"I'm connecting you with our insurance transport coordinator. You'll receive a call within 24 hours to arrange your covered ride.",buttons:[
+    {icon:'✓',label:'Got it',color:'c-green',userText:'Thanks!',next:'done'},
+  ]},
+  rideshare:{aiText:"Lyft voucher applied ✓\n\nCode: NUDGE-DAN ($20 value, valid Nov 6). Safe travels, Daniel!",buttons:[
+    {icon:'✓',label:'Perfect',color:'c-green',userText:'Thanks so much.',next:'done'},
+  ]},
+  copay_q:{aiText:"You're currently at 96% adherence — cost likely isn't a barrier. But good to know: the Janssen CarePath program offers up to $20,000/year in copay support for infliximab.\n\nWould you like enrollment info sent to your email?",special:'copay_confirm',buttons:[]},
+  copay_yes:{aiText:"✓ Enrollment info sent to your email. The program is automatic once registered — no manual reapplication each visit.",buttons:[{icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks!',next:'done'}]},
+  copay_no:{aiText:"No problem — it's in your patient portal whenever you need it.",buttons:[{icon:'✓',label:'Got it',color:'c-green',userText:'Thanks.',next:'done'}]},
+  staff:{aiText:"Connecting you to Nurse Sarah's team now. 👋\n\nA coordinator will be with you shortly — your conversation has been shared so they're fully briefed.",buttons:[]},
+  done:{aiText:"Is there anything else I can help you with today?",buttons:[
+    {icon:'✓',label:"No, I'm all set",color:'c-green',userText:"I'm all set, thanks.",next:'farewell'},
+    {icon:'🔧',label:'Yes, one more thing',color:'c-gray',userText:'Yes, one more thing.',next:'other_help'},
+  ]},
+  farewell:{aiText:"Great! Take care Daniel, and we'll see you at your infusion. Keep that streak going! 🌟",buttons:[]},
+},
+
+jessica:{
+  greeting:{
+    aiText:"Hi Jessica. Your infusion is now 9 weeks out — a week past your optimal schedule.\n\nDelaying further increases your flare risk, and your treatment window is narrowing. Nurse David has a weekend slot available so work doesn't have to be a factor.\n\nWhat would you like to do?",
+    buttons:[
+      {icon:'✓',label:'Confirm Visit',color:'c-green',userText:"Yes, I can make it this weekend.",next:'confirmed'},
+      {icon:'🔍',label:'Find a Better Time',color:'c-blue',userText:"Can I see other times?",next:'slots_wknd'},
+      {icon:'⏰',label:'Remind Me Later',color:'c-amber',userText:"Can you remind me in a few hours?",next:'remind_later'},
+      {icon:'✕',label:'Cancel',color:'c-red',userText:"I need to cancel.",next:'cancel_q'},
+    ]},
+  confirmed:{aiText:"Confirmed ✓ Nurse David has you down for Saturday, November 1 at 11:00 AM.\n\nYou caught it just in time — 9 weeks is the edge of your optimal window. Arriving this Saturday protects your therapeutic levels.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something.',next:'other_help'},
+  ]},
+  calendar_added:{aiText:"✓ Added to your calendar. Reminder set for Friday evening.\n\nAnything else before Saturday?",special:'calendar',buttons:[
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'Yes, one more thing.',next:'other_help'},
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"I'm all set, thanks.",next:'farewell'},
+  ]},
+  slots_wknd:{aiText:"I found slots that work around a busy week — weekend and evening options so work isn't a conflict:",special:'slots_wknd',buttons:[]},
+  slot_sat:{aiText:"Confirmed ✓ Saturday, November 1 at 11:00 AM with Nurse David.\n\nA weekend slot — no work conflict. Your care team has been notified.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add this to my calendar.',next:'calendar_added'},
+    {icon:'🔧',label:'Other Help',color:'c-gray',userText:'I need help with something else.',next:'other_help'},
+  ]},
+  slot_sun:{aiText:"Confirmed ✓ Sunday, November 2 at 2:00 PM with Nurse David.\n\nSunday afternoon — plenty of time to settle in before the week starts. Your care team is notified.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+  ]},
+  remind_later:{aiText:"⏰ Reminder set for 2 hours from now.\n\nJust a note — you're already 1 week past your optimal window. The longer you wait, the higher your flare risk. We'll remind you again with available slots.",buttons:[
+    {icon:'✓',label:'Actually, confirm now',color:'c-green',userText:"On second thought, let me confirm now.",next:'confirmed'},
+    {icon:'🔍',label:'Show me times',color:'c-blue',userText:"Can I see the available slots?",next:'slots_wknd'},
+  ]},
+  cancel_q:{aiText:"Jessica, I understand — life is demanding. But waiting further risks a flare at an already packed time.\n\nCan we find a weekend slot so work isn't a factor? Or should I connect you with a coordinator who specializes in working around family schedules?",sideEffect:'cancel',buttons:[
+    {icon:'🔍',label:'Show Weekend Slots',color:'c-blue',userText:'Yes, show me weekend times.',next:'slots_wknd'},
+    {icon:'👤',label:'Talk to Coordinator',color:'c-purple',userText:"I'd like to talk to a coordinator.",next:'coord'},
+    {icon:'✕',label:"I'll call in later",color:'c-gray',userText:"I'll call the office when I can.",next:'cancel_confirmed'},
+  ]},
+  coord:{aiText:"✓ A coordinator will call within the hour to find a time that genuinely works for your schedule.\n\nThey specialize in working around family and work commitments — including evenings and weekends.",buttons:[]},
+  cancel_confirmed:{aiText:"Understood. A coordinator will follow up within 24 hours. Please don't wait too long — your treatment window is closing.",buttons:[]},
+  other_help:{aiText:"What can I help you with?",buttons:[
+    {icon:'🚌',label:'Transportation',color:'c-indigo',userText:'I have a transport question.',next:'transport_q'},
+    {icon:'💳',label:'Co-pay Help',color:'c-teal',userText:'I have a co-pay question.',next:'copay_q'},
+    {icon:'👤',label:'Talk to Staff',color:'c-purple',userText:"I'd like to talk to staff.",next:'staff'},
+  ]},
+  transport_q:{aiText:"Happy to help with your commute. What works best?",buttons:[
+    {icon:'🚌',label:'Clinic Shuttle',color:'c-indigo',userText:"I'd like the shuttle.",next:'shuttle_q'},
+    {icon:'🛡',label:'Insurance Ride',color:'c-teal',userText:"I'd like an insurance ride.",next:'insurance'},
+    {icon:'📱',label:'Rideshare Voucher',color:'c-amber',userText:"I'd like a rideshare voucher.",next:'rideshare'},
+  ]},
+  shuttle_q:{aiText:"Shall I use your address on file for shuttle pickup?",special:'address_verify',buttons:[]},
+  shuttle_ok:{aiText:"Shuttle confirmed! 🚌 Pickup in time for your Saturday appointment. No need to arrange anything — just show up.",sideEffect:'confirm',buttons:[{icon:'✓',label:'Perfect',color:'c-green',userText:'Thanks!',next:'farewell'}]},
+  shuttle_edit:{aiText:"Please type your updated address and I'll send it to the driver.",special:'address_edit',buttons:[]},
+  insurance:{aiText:"Insurance transport team has been notified. They'll confirm your ride within 24 hours.",buttons:[{icon:'✓',label:'Got it',color:'c-green',userText:'Thanks!',next:'farewell'}]},
+  rideshare:{aiText:"Rideshare voucher applied ✓\n\nCode: JESSICA-SAT ($20, valid Nov 1). Safe travels!",buttons:[{icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks!',next:'farewell'}]},
+  copay_q:{aiText:"With your insurance, you may qualify for copay assistance through the Janssen CarePath program — up to $20,000/year in support. Want enrollment info sent to your email?",special:'copay_confirm',buttons:[]},
+  copay_yes:{aiText:"✓ Enrollment info sent. The CarePath team will follow up within 2 business days.",buttons:[{icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks!',next:'farewell'}]},
+  copay_no:{aiText:"No problem — available in your patient portal whenever you need it.",buttons:[{icon:'✓',label:'Got it',color:'c-green',userText:'Got it.',next:'farewell'}]},
+  staff:{aiText:"Connecting you to Nurse David's team. They'll work around your schedule — someone will call shortly.",buttons:[]},
+  farewell:{aiText:"Take care Jessica, and we'll see you Saturday! Your family is lucky to have someone this committed to their health. 💙",buttons:[]},
+},
+
+marcus:{
+  greeting:{
+    aiText:"Hi Marcus. Before we talk about your appointment — did you know you may qualify for $0 copay support?\n\nMany patients on infliximab with your coverage qualify for the Janssen CarePath program. Your appointment is Monday, November 3 at 9:00 AM.\n\nWhat would you like to do?",
+    buttons:[
+      {icon:'💰',label:'Tell Me About Copay Help',color:'c-teal',userText:"Tell me about copay assistance first.",next:'copay_help'},
+      {icon:'✓',label:'Confirm Appointment',color:'c-green',userText:"I'm confirming my appointment.",next:'confirmed'},
+      {icon:'📅',label:'Need to Reschedule',color:'c-blue',userText:"I need to change the date.",next:'slots_intro'},
+      {icon:'✕',label:"Can't Make It",color:'c-red',userText:"I can't make it to this appointment.",next:'cant_make_it'},
+    ]},
+  copay_help:{aiText:"The Janssen CarePath Savings Program can cover up to $20,000/year in out-of-pocket costs for infliximab. 💊\n\nBased on your profile, you may qualify for $0 copay — not just this visit, but going forward. The application takes 5 minutes and your clinic handles the billing directly.\n\nReady to start?",buttons:[
+    {icon:'✅',label:'Start the Application',color:'c-teal',userText:"Yes, let's start the application.",next:'apply_now'},
+    {icon:'❓',label:'Tell Me More',color:'c-blue',userText:"Can you tell me more first?",next:'copay_details'},
+    {icon:'⏩',label:'Skip for Now',color:'c-gray',userText:"Skip the copay for now.",next:'skip_copay'},
+  ]},
+  apply_now:{aiText:"✓ Application initiated!\n\nA CarePath coordinator will call within 24 hours. They work directly with your clinic billing — you may owe nothing at your next visit and going forward.\n\nShall I also confirm your November 3rd appointment?",buttons:[
+    {icon:'✓',label:'Yes, confirm it',color:'c-green',userText:"Yes, confirm the appointment too.",next:'apply_and_confirm'},
+    {icon:'📅',label:'Choose a Different Day',color:'c-blue',userText:"I'd prefer a different day.",next:'slots_intro'},
+  ]},
+  apply_and_confirm:{aiText:"You're confirmed ✓ for Monday, November 3 at 9:00 AM with Nurse Elena.\n\nA CarePath coordinator will follow up on your copay status before the visit. You may not owe anything.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"I'm all set, thanks.",next:'farewell'},
+  ]},
+  copay_details:{aiText:"Here's how it works:\n\n• Program: Janssen CarePath Savings\n• Covers: Up to $20,000/year in out-of-pocket costs\n• Eligibility: Most commercially insured patients qualify\n• Timeline: Benefits active within 2 business days\n• Process: 5 minutes — clinic handles billing directly\n\nReady to apply?",buttons:[
+    {icon:'✅',label:'Start Application',color:'c-teal',userText:"Yes, let's apply.",next:'apply_now'},
+    {icon:'⏩',label:'Maybe Later',color:'c-gray',userText:"Maybe later.",next:'skip_copay'},
+  ]},
+  skip_copay:{aiText:"No problem — the program is available in your patient portal whenever you're ready.\n\nWould you like to confirm your November 3rd appointment?",buttons:[
+    {icon:'✓',label:'Confirm Appointment',color:'c-green',userText:"Yes, confirm my appointment.",next:'confirmed'},
+    {icon:'📅',label:'Choose Different Day',color:'c-blue',userText:"I'd like a different day.",next:'slots_intro'},
+  ]},
+  confirmed:{aiText:"Confirmed ✓ Nurse Elena has you scheduled for Monday, November 3 at 9:00 AM.\n\nRemember — you may qualify for $0 copay through CarePath. Let us know if cost becomes a barrier at any point. We can activate help quickly.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'💰',label:'Copay Help After All',color:'c-teal',userText:"Actually, tell me about the copay help.",next:'copay_help'},
+    {icon:'✓',label:"I'm good",color:'c-green',userText:"I'm all set.",next:'farewell'},
+  ]},
+  calendar_added:{aiText:"✓ Added to your calendar.\n\nIs there anything else I can help with before your Monday appointment?",special:'calendar',buttons:[
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"That's everything, thanks.",next:'farewell'},
+    {icon:'🚌',label:'Transport Help',color:'c-indigo',userText:"I need help getting there.",next:'transport_q'},
+  ]},
+  slots_intro:{aiText:"Of course. Here are available slots this week — all with copay support available:",special:'slots_both',buttons:[]},
+  slot_tue:{aiText:"Confirmed ✓ Tuesday, November 4 at 9:00 AM with Nurse Elena.\n\nRemember — your CarePath copay application is still available if you'd like to start it.",sideEffect:'confirm',buttons:[
+    {icon:'💰',label:'Start Copay Application',color:'c-teal',userText:"Let's start the copay application.",next:'copay_help'},
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"I'm all set.",next:'farewell'},
+  ]},
+  slot_wed:{aiText:"Confirmed ✓ Wednesday, November 5 at 2:00 PM with Nurse Elena.\n\nA CarePath coordinator will follow up on your copay status before the visit.",sideEffect:'confirm',buttons:[
+    {icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks, I appreciate it.',next:'farewell'},
+  ]},
+  cant_make_it:{aiText:"I hear you, Marcus. Is cost the main barrier today, or is something else making it difficult?",buttons:[
+    {icon:'💰',label:"It's the Cost",color:'c-teal',userText:"Honestly, it's the cost.",next:'copay_help'},
+    {icon:'🚌',label:'Transport Issue',color:'c-indigo',userText:"It's a transport issue.",next:'transport_q'},
+    {icon:'💬',label:'Something Else',color:'c-purple',userText:"Something else.",next:'other_reason'},
+  ]},
+  other_reason:{aiText:"Your clinical coordinator will call you shortly to find a solution together. We're not here to pressure — we're here to help.\n\nNurse Elena has been notified and will follow up.",buttons:[]},
+  transport_q:{aiText:"Let's get you there. Which option works best?",buttons:[
+    {icon:'🚌',label:'Clinic Shuttle',color:'c-indigo',userText:"The shuttle, please.",next:'shuttle_q'},
+    {icon:'🛡',label:'Insurance Ride',color:'c-teal',userText:"I'd like an insurance ride.",next:'insurance'},
+    {icon:'📱',label:'Rideshare Voucher',color:'c-amber',userText:"A rideshare voucher.",next:'rideshare'},
+  ]},
+  shuttle_q:{aiText:"Shall I use your address on file for the shuttle pickup?",special:'address_verify',buttons:[]},
+  shuttle_ok:{aiText:"Shuttle confirmed! 🚌\n\nPickup at 8:00 AM — accounting for your commute. Nurse Elena will be ready at 9:00 AM.",sideEffect:'confirm',buttons:[{icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks so much.',next:'farewell'}]},
+  shuttle_edit:{aiText:"Please type your pickup address and I'll send it to the driver.",special:'address_edit',buttons:[]},
+  insurance:{aiText:"Insurance transport team notified. They'll confirm your ride within 24 hours.",buttons:[{icon:'✓',label:'Got it',color:'c-green',userText:'Thanks.',next:'farewell'}]},
+  rideshare:{aiText:"Rideshare voucher applied ✓\n\nCode: MARCUS-NOV ($25, valid Nov 3). For future visits, our free shuttle is also an option.",buttons:[{icon:'✓',label:'Thanks',color:'c-green',userText:'Thanks!',next:'farewell'}]},
+  farewell:{aiText:"Take care Marcus. You're doing the right thing for your health, and we're here to make it as easy as possible.",buttons:[]},
+},
+
+linda:{
+  greeting:{
+    aiText:"Good morning, Linda! 😊\n\nYour next infusion is Wednesday, November 5 at 9:30 AM with Nurse Maria.\n\nWould you like us to arrange a ride for you? We can have transport ready — you just need to show up.",
+    buttons:[
+      {icon:'🚗',label:'Yes, Arrange a Ride',color:'c-indigo',userText:"Yes please, I need a ride.",next:'arrange_ride'},
+      {icon:'✓',label:'I Have My Own Transport',color:'c-green',userText:"I have my own transport, thank you.",next:'have_transport'},
+      {icon:'📅',label:'Need to Reschedule',color:'c-blue',userText:"I need to change the date.",next:'slots_intro'},
+      {icon:'✕',label:'Need to Cancel',color:'c-red',userText:"I need to cancel.",next:'cancel_q'},
+    ]},
+  arrange_ride:{aiText:"Let's get you there comfortably, Linda. Which transport option works best for you?",buttons:[
+    {icon:'🚌',label:'Clinic Shuttle',color:'c-indigo',userText:"The clinic shuttle, please.",next:'shuttle_q'},
+    {icon:'🛡',label:'Insurance Ride',color:'c-teal',userText:"My insurance might cover a ride.",next:'insurance'},
+    {icon:'🚕',label:'Arranged Rideshare',color:'c-amber',userText:"Can you arrange a rideshare?",next:'rideshare'},
+  ]},
+  shuttle_q:{aiText:"Of course! Is your pickup address still on file?\n\n📍 2847 Oak Street, Dallas, TX 75201",special:'address_verify',buttons:[]},
+  shuttle_ok:{aiText:"Clinic shuttle confirmed! 🚌\n\nYour driver will arrive at 8:30 AM — a full hour before your infusion so there's no rush. The driver's name and number will be sent to your phone the morning before.",sideEffect:'confirm',buttons:[
+    {icon:'📞',label:'Yes, Please Call Day Before',color:'c-blue',userText:"Please also call me the day before.",next:'reminder_set'},
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"I'm all set, thank you.",next:'farewell'},
+  ]},
+  shuttle_edit:{aiText:"Of course, Linda — please type your updated address and I'll make sure the driver has it.",special:'address_edit',buttons:[]},
+  reminder_set:{aiText:"✓ Reminder call scheduled for Tuesday, November 4 at 5:00 PM.\n\nNurse Maria will also confirm any preparation instructions during the call. See you Wednesday!",buttons:[]},
+  insurance:{aiText:"I'm connecting with your insurance plan to arrange covered transport, Linda. A coordinator will confirm the ride with you by phone within 24 hours.\n\nYou don't need to do anything — we'll handle the coordination.",sideEffect:'confirm',buttons:[
+    {icon:'✓',label:'Thank you',color:'c-green',userText:'Thank you so much.',next:'farewell'},
+  ]},
+  rideshare:{aiText:"A rideshare has been arranged for Wednesday morning. 🚗\n\nVoucher code: LINDA-CARE (valid Nov 5). A text confirmation will be sent to your phone. The driver will help you to the door.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Please add this to my calendar.',next:'calendar_added'},
+    {icon:'✓',label:'Thank you',color:'c-green',userText:'Thank you.',next:'farewell'},
+  ]},
+  calendar_added:{aiText:"✓ Added to your calendar with a reminder the morning of.\n\nNurse Maria is looking forward to seeing you, Linda!",special:'calendar',buttons:[]},
+  have_transport:{aiText:"Wonderful! Nurse Maria is looking forward to seeing you, Linda. ✓\n\nWould you like us to give you a reminder call the day before your appointment?",sideEffect:'confirm',buttons:[
+    {icon:'📞',label:'Yes, Call Day Before',color:'c-blue',userText:"Yes, a reminder call would be lovely.",next:'reminder_set'},
+    {icon:'✓',label:'No, I Remember',color:'c-green',userText:"No thank you, I'll remember.",next:'farewell'},
+  ]},
+  slots_intro:{aiText:"Of course, Linda. Here are available slots — all with transport support if needed:",special:'slots_std',buttons:[]},
+  slot_thu:{aiText:"Confirmed ✓ Thursday, November 6 at 9:30 AM with Nurse Maria.\n\nShall I also arrange a ride for the new date?",sideEffect:'confirm',buttons:[
+    {icon:'🚗',label:'Yes, Arrange a Ride',color:'c-indigo',userText:"Yes, please arrange a ride for Thursday.",next:'arrange_ride'},
+    {icon:'✓',label:"I have transport",color:'c-green',userText:"I have my own transport, thanks.",next:'farewell'},
+  ]},
+  slot_fri:{aiText:"Confirmed ✓ Friday, November 7 at 10:00 AM with Nurse Maria.\n\nWould you like us to arrange transport for this date?",sideEffect:'confirm',buttons:[
+    {icon:'🚗',label:'Yes Please',color:'c-indigo',userText:"Yes, please arrange transport.",next:'arrange_ride'},
+    {icon:'✓',label:"I'm all set",color:'c-green',userText:"I'm set, thanks.",next:'farewell'},
+  ]},
+  cancel_q:{aiText:"Linda, I'd love to help you find a way to make this appointment work. If getting here is the challenge, we can arrange a ride right now — at no cost to you.\n\nWould you like us to sort out transport so you don't have to worry about it?",buttons:[
+    {icon:'🚗',label:'Yes, Arrange Transport',color:'c-indigo',userText:"Yes, please arrange transport.",next:'arrange_ride'},
+    {icon:'📅',label:'Try a Different Day',color:'c-blue',userText:"Can we try a different day?",next:'slots_intro'},
+    {icon:'👤',label:'Talk to Staff',color:'c-purple',userText:"I'd like to talk to someone.",next:'staff'},
+  ]},
+  staff:{aiText:"✓ A coordinator will call you shortly, Linda. They'll arrange everything — transport, timing, and any preparation questions. You're in good hands.",buttons:[]},
+  farewell:{aiText:"Take care, Linda! Nurse Maria is looking forward to seeing you. Remember, if anything comes up before Wednesday, just reach out. 💙",buttons:[]},
+},
+
+tyler:{
+  greeting:{
+    aiText:"Hi Tyler. It's been 12 weeks since your last infusion.\n\nYour clinical team is concerned. Patients who delay beyond 12 weeks are 3× more likely to experience a flare, and many lose the therapeutic benefit built through prior treatments.\n\nThere's still time to recover your therapeutic position. What would you like to do?",
+    buttons:[
+      {icon:'📊',label:'Show Me the Data',color:'c-purple',userText:"Show me the data behind that.",next:'show_data'},
+      {icon:'🩺',label:'Talk to a Clinician',color:'c-blue',userText:"I'd like to talk to a doctor.",next:'talk_clinician'},
+      {icon:'📅',label:'Schedule Now',color:'c-green',userText:"I'm ready to schedule.",next:'slots_intro'},
+      {icon:'⌛',label:'Not Right Now',color:'c-gray',userText:"I'm not ready right now.",next:'not_now'},
+    ]},
+  show_data:{aiText:"Here's what the data shows for patients like you:",special:'stats',buttons:[
+    {icon:'📅',label:'Schedule Now',color:'c-green',userText:"Ok, I'm ready to schedule.",next:'slots_intro'},
+    {icon:'🩺',label:'Talk to a Clinician',color:'c-blue',userText:"I want to talk to a doctor first.",next:'talk_clinician'},
+    {icon:'📚',label:'Learn More',color:'c-purple',userText:"I'd like to read more.",next:'library'},
+  ]},
+  talk_clinician:{aiText:"✓ Dr. Torres has been notified and will call you within 4 hours.\n\nYour case has been flagged as priority. They'll address any concerns about restarting treatment — no pressure, just an honest conversation about where you stand.",buttons:[
+    {icon:'📅',label:'Also Schedule Now',color:'c-green',userText:"Can I also schedule a slot now?",next:'slots_intro'},
+    {icon:'✓',label:"I'll Wait for the Call",color:'c-gray',userText:"I'll wait for the call, thanks.",next:'farewell_soft'},
+  ]},
+  slots_intro:{aiText:"Here are available slots this week — your clinical team is ready for you:",special:'slots_both',buttons:[]},
+  slot_fri:{aiText:"Confirmed ✓ Friday, November 7 at 2:00 PM with Nurse James.\n\nThis is an important step, Tyler. Returning at week 12 still gives you a strong chance of recovering your full therapeutic response. Your care team will be ready.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add this to my calendar.',next:'calendar_added'},
+    {icon:'🤔',label:'What to Expect',color:'c-purple',userText:"What should I expect at the visit?",next:'what_to_expect'},
+  ]},
+  slot_sat:{aiText:"Confirmed ✓ Saturday, November 8 at 10:00 AM with Nurse James.\n\nWeek 12 is still within the recovery window. Your care team is genuinely glad you're coming back.",sideEffect:'confirm',buttons:[
+    {icon:'📅',label:'Add to Calendar',color:'c-indigo',userText:'Add to my calendar.',next:'calendar_added'},
+    {icon:'🤔',label:'What Should I Expect?',color:'c-purple',userText:"What should I expect at the visit?",next:'what_to_expect'},
+  ]},
+  calendar_added:{aiText:"✓ Added to your calendar.\n\nNurse James will reach out the day before with any prep instructions.",special:'calendar',buttons:[
+    {icon:'🤔',label:'What to Expect',color:'c-purple',userText:"What should I expect at the visit?",next:'what_to_expect'},
+    {icon:'✓',label:"I'm ready",color:'c-green',userText:"I'm ready, see you then.",next:'farewell'},
+  ]},
+  what_to_expect:{aiText:"At your next visit:\n\n🔬 Quick blood panel to check your infliximab levels\n💉 Infusion takes approximately 2 hours\n👋 Nurse James will be your point of contact throughout\n\nThe goal is to get your levels back to therapeutic range. Your previous infusions mean your body knows this drug — the re-establishment is usually smooth.\n\nAny specific concerns before you come in?",buttons:[
+    {icon:'❓',label:'I Have Questions',color:'c-blue',userText:"Yes, I have some questions.",next:'have_questions'},
+    {icon:'✓',label:"I'm Ready",color:'c-green',userText:"I'm ready. See you then.",next:'farewell'},
+  ]},
+  have_questions:{aiText:"Connecting you to Nurse James now. 👋\n\nThey'll address any concerns about restarting — timing, side effects, what the blood panel shows. Someone will be with you shortly.",buttons:[]},
+  library:{aiText:"Resources that may help address your questions about treatment:",special:'library',buttons:[
+    {icon:'📅',label:'Schedule Now',color:'c-green',userText:"I'm ready to schedule.",next:'slots_intro'},
+    {icon:'🩺',label:'Talk to a Clinician',color:'c-blue',userText:"I'd like to talk to someone first.",next:'talk_clinician'},
+  ]},
+  not_now:{aiText:"I understand, Tyler. Can I ask — what's making it difficult to come in? Understanding that helps me find a real solution, not just a reminder.",buttons:[
+    {icon:'💰',label:"It's the Cost",color:'c-teal',userText:"Honestly, it's the cost.",next:'its_cost'},
+    {icon:'🚌',label:'Getting There Is Hard',color:'c-indigo',userText:"Getting there is the issue.",next:'transport_q'},
+    {icon:'🤔',label:"Not Sure It's Helping",color:'c-purple',userText:"I'm not sure the treatment is even helping.",next:'not_sure'},
+    {icon:'💬',label:'Personal Reasons',color:'c-gray',userText:"It's personal.",next:'personal'},
+  ]},
+  its_cost:{aiText:"If cost is the barrier, the Janssen CarePath program may cover your full copay — many patients qualify for $0 out-of-pocket. The application takes 5 minutes.\n\nWould you like to know if you qualify, knowing cost may not be an obstacle?",special:'copay_confirm',buttons:[]},
+  cost_yes:{aiText:"✓ Application started! A CarePath coordinator will call within 24 hours.\n\nCost shouldn't be what keeps you from care that's already shown some benefit. Shall we also schedule your appointment now?",buttons:[
+    {icon:'📅',label:'Schedule Now',color:'c-green',userText:"Yes, let's schedule.",next:'slots_intro'},
+    {icon:'✓',label:"I'll Wait for the Call",color:'c-gray',userText:"I'll wait for the copay call first.",next:'farewell_soft'},
+  ]},
+  cost_no:{aiText:"No problem — the option is there whenever you need it.\n\nIs there anything else that's making it hard to come in?",buttons:[
+    {icon:'🚌',label:'Getting There',color:'c-indigo',userText:"Getting there is a barrier.",next:'transport_q'},
+    {icon:'🤔',label:'Unsure It Works',color:'c-purple',userText:"I'm not sure the treatment works.",next:'not_sure'},
+    {icon:'💬',label:'Personal Reasons',color:'c-gray',userText:"Personal reasons.",next:'personal'},
+  ]},
+  transport_q:{aiText:"Transport can be arranged — we have a free clinic shuttle and rideshare vouchers. What would work best for you?",buttons:[
+    {icon:'🚌',label:'Clinic Shuttle',color:'c-indigo',userText:"A clinic shuttle works.",next:'shuttle_ok'},
+    {icon:'📱',label:'Rideshare Voucher',color:'c-amber',userText:"A rideshare voucher.",next:'rideshare'},
+  ]},
+  shuttle_ok:{aiText:"Clinic shuttle confirmed! 🚌\n\nPickup scheduled — no logistics to worry about. Just show up.\n\nShall we also lock in your appointment date?",buttons:[
+    {icon:'📅',label:'Schedule Now',color:'c-green',userText:"Yes, let's schedule.",next:'slots_intro'},
+    {icon:'✓',label:"I'll decide later",color:'c-gray',userText:"I'll decide the date later.",next:'farewell_soft'},
+  ]},
+  rideshare:{aiText:"Rideshare voucher applied ✓\n\nCode: TYLER-BACK ($25, valid for your appointment day).\n\nShall we lock in a date?",buttons:[
+    {icon:'📅',label:'Schedule Now',color:'c-green',userText:"Yes, schedule me.",next:'slots_intro'},
+    {icon:'✓',label:"I'll decide later",color:'c-gray',userText:"I'll decide the date later.",next:'farewell_soft'},
+  ]},
+  not_sure:{aiText:"That's a real and fair concern — and it's worth addressing directly.\n\nYour clinical team has data on your specific treatment response. Would you be willing to have a 10-minute call with Dr. Torres to review your results? It's not a commitment to continue — just a conversation.",buttons:[
+    {icon:'🩺',label:'Yes, Set Up the Call',color:'c-blue',userText:"Yes, set up the call.",next:'talk_clinician'},
+    {icon:'📊',label:'Show Me My Data First',color:'c-purple',userText:"Show me the general data first.",next:'show_data'},
+    {icon:'✕',label:'Not Yet',color:'c-gray',userText:"Not yet.",next:'not_yet'},
+  ]},
+  personal:{aiText:"That's completely valid — and you don't owe an explanation. Would you feel comfortable talking to your nurse, just a brief conversation? No commitment, no judgment.",buttons:[
+    {icon:'👤',label:'Yes, Talk to Nurse James',color:'c-blue',userText:"Yes, I'll talk to Nurse James.",next:'talk_clinician'},
+    {icon:'✕',label:'Not Right Now',color:'c-gray',userText:"Not right now.",next:'no_thanks'},
+  ]},
+  not_yet:{aiText:"No pressure, Tyler. We'll check in again in a few days.\n\nYour care team genuinely cares — the door is always open when you're ready.",buttons:[]},
+  no_thanks:{aiText:"No pressure at all. We'll check in with you again in a few days.\n\nWhenever you're ready, your care team will be here. Take care of yourself, Tyler.",buttons:[]},
+  farewell_soft:{aiText:"Understood, Tyler. We'll follow up in a few days. If anything changes before then, just reach out here anytime.",buttons:[]},
+  farewell:{aiText:"We're glad you're coming back, Tyler. Your care team will be ready. See you soon — this matters more than you might think. 💙",buttons:[]},
+},
+};
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let activeId = 'daniel';
+let messages = []; // {role:'ai'|'user', text, special?}
+let patientState = {}; // per patient: {confirmed,canceled}
+PATIENTS.forEach(p => patientState[p.id] = {confirmed:p.defaultConfirmed, canceled:false});
+let currentNode = 'greeting';
+let isTyping = false;
+let calendarAdded = false;
+let triviaMode = false;
+let addressEditMode = false;
+let copayConfirmMode = false;
+
+function getPatient(id){ return PATIENTS.find(p=>p.id===(id||activeId)); }
+function getFlow(pid){ return FLOWS[pid||activeId]; }
+function getNode(nodeId){ return getFlow()[nodeId]; }
+
+// ═══════════════════════════════════════════════════
+// UI RENDERING
+// ═══════════════════════════════════════════════════
+function renderSidebar(){
+  const p = getPatient();
+  const ps = patientState[p.id];
+
+  // Patient list
+  document.getElementById('pt-list').innerHTML = PATIENTS.map(pt => `
+    <button class="pt-card${pt.id===activeId?' active':''}" onclick="switchPatient('${pt.id}')">
+      <div class="pt-active-dot"></div>
+      <div class="pt-top">
+        <span class="pt-name">${pt.name}</span>
+        <span class="risk-badge" style="background:${pt.riskBg};color:${pt.riskColor}">${pt.risk}</span>
+      </div>
+      <div class="pt-pers">${pt.persona}</div>
+      <div class="pt-stats">
+        <span class="pt-adh">Adherence <span>${pt.adherence}%</span></span>
+      </div>
+    </button>`).join('');
+
+  // Nudge panel
+  document.getElementById('nudge-bg').textContent = p.strategyEmoji;
+  document.getElementById('nudge-name').innerHTML = `<span class="ndot" style="background:${p.strategyColor}"></span>${p.strategy}`;
+  document.getElementById('nudge-desc').textContent = p.strategyDesc;
+
+  // Nurse
+  document.getElementById('nurse-av').textContent = p.nurseInitial;
+  document.getElementById('nurse-nm').textContent = p.nurse;
+  document.getElementById('nurse-sp').textContent = p.nurseSpec;
+
+  // Appointment card
+  const confirmed = ps.confirmed;
+  const canceled = ps.canceled;
+  let statusLabel = canceled ? 'CANCELED' : confirmed ? 'CONFIRMED' : 'ACTION REQUIRED';
+  let statusClass = canceled ? 'status-canceled' : confirmed ? 'status-confirmed' : 'status-pending';
+  document.getElementById('status-badge').className = `risk-badge ${statusClass}`;
+  document.getElementById('status-badge').textContent = statusLabel;
+  document.getElementById('appt-date').textContent = p.apptDate;
+  document.getElementById('appt-time').textContent = p.apptTime;
+  document.getElementById('appt-nurse2').textContent = p.nurse;
+  document.getElementById('win-val').textContent = p.windowStatus;
+  document.getElementById('win-val').style.color = p.windowColor;
+  document.getElementById('cancel-appt-btn').style.display = canceled ? 'none' : 'flex';
+
+  // Header
+  document.getElementById('hdr-pt').textContent = p.name;
+  document.getElementById('hdr-r').textContent = `${p.apptShort} · ${p.apptTime}`;
+}
+
+function renderMessages(){
+  const container = document.getElementById('msgs');
+  const scrollWasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+
+  let html = messages.map(m => {
+    let bubbleInner = `<div class="bubble ${m.role}" style="white-space:pre-wrap">${escHtml(m.text)}</div>`;
+    if(m.special === 'library'){
+      bubbleInner = `<div class="bubble ${m.role}" style="white-space:pre-wrap">${escHtml(m.text)}<div class="lib-grid">${LIBRARY.map((item,idx)=>`
+        <div class="lib-item" style="background:${item.bg};border:1px solid ${item.color}25" onclick="openArticle(${idx})">
+          <div class="lib-type" style="color:${item.color}">${item.type} · ${item.dur}</div>
+          <div class="lib-ttl">${item.title}</div>
+        </div>`).join('')}</div></div>`;
+    }
+
+    if(m.role === 'ai' && m.caps && m.caps.length){
+      const chips = m.caps.filter(c => CAP_LABELS[c]).map(c => {
+        const cl = CAP_LABELS[c];
+        const label = (c === 'nudges' && m.strategyName) ? `${cl.icon} ${cl.name} · ${m.strategyName}` : `${cl.icon} ${cl.name}`;
+        return `<div class="cap-chip"><div class="cap-chip-dot" style="background:${cl.color}"></div>${label}</div>`;
+      }).join('');
+      return `<div class="msg-wrap ai"><div class="bbl-wrap">${bubbleInner}<div class="cap-chips">${chips}</div></div></div>`;
+    }
+    return `<div class="msg-wrap ${m.role}">${bubbleInner}</div>`;
+  }).join('');
+
+  if(isTyping){
+    html += `<div class="typing-wrap"><div class="typing-bbl"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;
+  }
+
+  // Render current UI
+  const node = getNode(currentNode);
+  if(!isTyping && node){
+    html += renderCurrentUI(node);
+  }
+
+  container.innerHTML = html;
+  if(scrollWasAtBottom || isTyping){
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+function renderCurrentUI(node){
+  let html = '';
+
+  // Calendar card (after confirm)
+  if(calendarAdded && node.special === 'calendar'){
+    html += `<div class="cal-card"><span style="font-size:18px">📅</span>
+      <div class="cal-info"><div class="cal-dt">${getPatient().apptDate} · ${getPatient().apptTime}</div><div class="cal-loc">Main Infusion Suite, Floor 4</div></div>
+      <div class="cal-added">✓ Added</div></div>`;
+  } else if(node.special === 'calendar' && !calendarAdded){
+    html += `<div class="cal-card"><span style="font-size:18px">📅</span>
+      <div class="cal-info"><div class="cal-dt">${getPatient().apptDate} · ${getPatient().apptTime}</div><div class="cal-loc">Main Infusion Suite, Floor 4</div></div>
+      <button class="cal-btn" onclick="addCalendar()">+ Add</button></div>`;
+  }
+
+  // Stats card for Tyler
+  if(node.special === 'stats'){
+    html += `<div class="stats-card">
+      <div class="stat-row"><div class="stat-ico">📊</div><div class="stat-txt">3× higher flare rate after missing 1+ infusions</div></div>
+      <div class="stat-row"><div class="stat-ico">📊</div><div class="stat-txt">64% reduced drug efficacy at 12+ weeks without treatment</div></div>
+      <div class="stat-row"><div class="stat-ico">📊</div><div class="stat-txt">Returning within 14 weeks can still restore therapeutic levels — you're at week 12</div></div>
+      <div class="stat-row"><div class="stat-ico">💙</div><div class="stat-txt">Patients who return after gaps like yours show 78% disease stabilization within 3 infusions</div></div>
+    </div>`;
+  }
+
+  // Slot pickers
+  if(node.special === 'slots_std'){
+    const p = getPatient();
+    html += `<div class="slots-wrap">
+      <div class="slot-card" onclick="selectSlot('slot1')">
+        <div class="slot-day">Friday</div><div class="slot-date">Nov 7</div><div class="slot-time">9:00 AM</div><div class="slot-hint">±1 day</div>
+      </div>
+      <div class="slot-card" onclick="selectSlot('slot2')">
+        <div class="slot-day">Sunday</div><div class="slot-date">Nov 9</div><div class="slot-time">2:30 PM</div><div class="slot-hint">±3 days</div>
+      </div></div>`;
+  }
+  if(node.special === 'slots_wknd'){
+    html += `<div class="slots-wrap">
+      <div class="slot-card" onclick="selectSlot('slot1')">
+        <div class="slot-day">Saturday</div><div class="slot-date">Nov 1</div><div class="slot-time">11:00 AM</div><div class="slot-hint">Weekend</div>
+      </div>
+      <div class="slot-card" onclick="selectSlot('slot2')">
+        <div class="slot-day">Sunday</div><div class="slot-date">Nov 2</div><div class="slot-time">2:00 PM</div><div class="slot-hint">Afternoon</div>
+      </div></div>`;
+  }
+  if(node.special === 'slots_both'){
+    html += `<div class="slots-wrap">
+      <div class="slot-card" onclick="selectSlot('slot1')">
+        <div class="slot-day">${activeId==='tyler'?'Friday':'Tuesday'}</div>
+        <div class="slot-date">${activeId==='tyler'?'Nov 7':'Nov 4'}</div>
+        <div class="slot-time">${activeId==='tyler'?'2:00 PM':'9:00 AM'}</div>
+      </div>
+      <div class="slot-card" onclick="selectSlot('slot2')">
+        <div class="slot-day">${activeId==='tyler'?'Saturday':'Wednesday'}</div>
+        <div class="slot-date">${activeId==='tyler'?'Nov 8':'Nov 5'}</div>
+        <div class="slot-time">${activeId==='tyler'?'10:00 AM':'2:00 PM'}</div>
+      </div></div>`;
+  }
+
+  // Address verify
+  if(node.special === 'address_verify'){
+    const addr = activeId==='marcus' ? 'Your address on file' : activeId==='tyler' ? 'Your address on file' : activeId==='linda' ? '2847 Oak Street, Dallas, TX 75201' : '1500 Louisiana St, Houston, TX 77002';
+    html += `<div class="addr-card">
+      <div class="addr-title">📍 Pickup Location</div>
+      <div class="addr-text">"${addr}"</div>
+      <div class="addr-btns">
+        <button class="addr-btn" style="background:#4338CA;color:white" onclick="confirmAddress(true)">✓ Correct</button>
+        <button class="addr-btn" style="background:white;color:#4338CA;border:1px solid #A5B4FC" onclick="confirmAddress(false)">✏ Update</button>
+      </div></div>`;
+  }
+
+  // Trivia hint
+  if(node.special === 'trivia' || triviaMode){
+    html += `<div class="hint-box" style="background:#FFFBEB;border:1px solid #FDE68A;color:#92400E">💡 Type your answer below and press Enter</div>`;
+  }
+
+  // Address edit hint
+  if(node.special === 'address_edit' || addressEditMode){
+    html += `<div class="hint-box" style="background:#EEF2FF;border:1px solid #A5B4FC;color:#4338CA">📍 Type your pickup address and press Enter</div>`;
+  }
+
+  // Copay confirm
+  if(node.special === 'copay_confirm' || copayConfirmMode){
+    html += `<div class="btns-row" style="margin-top:4px">
+      <button class="rbtn c-teal" onclick="handleCopayConfirm(true)">✅ Yes, Check My Eligibility</button>
+      <button class="rbtn c-gray" onclick="handleCopayConfirm(false)">Maybe Later</button>
+    </div>`;
+  }
+
+  // Regular buttons
+  if(node.buttons && node.buttons.length > 0 && !triviaMode && !addressEditMode && !copayConfirmMode){
+    html += `<div class="btns-row">${node.buttons.map((btn,i)=>`
+      <button class="rbtn ${btn.color}" onclick="handleBtn(${i})">${btn.icon} ${btn.label}</button>`).join('')}</div>`;
+  }
+
+  return html ? `<div class="resp-area">${html}</div>` : '';
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════
+function addUserMsg(text){
+  messages.push({role:'user', text});
+}
+
+function showAIResponse(nodeId, delay){
+  isTyping = true;
+  renderMessages();
+  setTimeout(()=>{
+    isTyping = false;
+    const node = getFlow()[nodeId];
+    if(!node) return;
+    currentNode = nodeId;
+    const msg = {role:'ai', text:node.aiText};
+    if(node.special === 'library') msg.special = 'library';
+    const capVal = NODE_CAPS[nodeId];
+    if(capVal) msg.caps = Array.isArray(capVal) ? capVal : [capVal];
+    if(msg.caps && msg.caps.includes('nudges')) msg.strategyName = getPatient().strategy;
+    messages.push(msg);
+
+    if(node.sideEffect === 'confirm'){
+      patientState[activeId].confirmed = true;
+      patientState[activeId].canceled = false;
+    }
+    if(node.sideEffect === 'cancel'){
+      patientState[activeId].canceled = true;
+      patientState[activeId].confirmed = false;
+    }
+
+    renderSidebar();
+    renderMessages();
+  }, delay||700);
+}
+
+function handleBtn(btnIdx){
+  if(isTyping) return;
+  const node = getNode(currentNode);
+  if(!node || !node.buttons[btnIdx]) return;
+  const btn = node.buttons[btnIdx];
+  addUserMsg(btn.userText);
+  calendarAdded = false;
+  triviaMode = false; addressEditMode = false; copayConfirmMode = false;
+
+  // Handle calendar special case
+  if(btn.next === 'calendar_added'){
+    calendarAdded = false;
+  }
+
+  showAIResponse(btn.next, 700);
+}
+
+function selectSlot(slotKey){
+  if(isTyping) return;
+  const node = getNode(currentNode);
+  // Map slot key to node id
+  let slotTexts = {
+    slots_std: {slot1:'slot_nov7', slot2:'slot_nov9'},
+    slots_wknd: {slot1:'slot_sat', slot2:'slot_sun'},
+    slots_both: {slot1: activeId==='tyler'?'slot_fri': activeId==='marcus'?'slot_tue':'slot_fri',
+                 slot2: activeId==='tyler'?'slot_sat': activeId==='marcus'?'slot_wed':'slot_sat'},
+  };
+  // Linda
+  if(activeId==='linda'){
+    slotTexts.slots_std = {slot1:'slot_thu', slot2:'slot_fri'};
+  }
+  const nodeMap = slotTexts[node.special]||{};
+  const targetNode = nodeMap[slotKey];
+  if(!targetNode) return;
+  const labels = {slot1:'I\'ll take the first slot.',slot2:'I\'ll take the second slot.'};
+  addUserMsg(labels[slotKey]);
+  showAIResponse(targetNode, 800);
+}
+
+function confirmAddress(isCorrect){
+  if(isTyping) return;
+  if(isCorrect){
+    addUserMsg('Yes, that address is correct.');
+    showAIResponse('shuttle_ok', 700);
+  } else {
+    addUserMsg("No, I need to update my address.");
+    messages.push({role:'ai', text:'Please type your updated pickup address below:'});
+    currentNode = 'shuttle_edit';
+    addressEditMode = true;
+    renderMessages();
+  }
+}
+
+function addCalendar(){
+  calendarAdded = true;
+  renderMessages();
+}
+
+function handleCopayConfirm(yes){
+  if(isTyping) return;
+  copayConfirmMode = false;
+  if(yes){
+    addUserMsg('Yes, check my eligibility.');
+    const yesNode = activeId==='tyler' ? 'cost_yes' : 'copay_yes';
+    showAIResponse(yesNode, 700);
+  } else {
+    addUserMsg('Maybe later.');
+    const noNode = activeId==='tyler' ? 'cost_no' : 'copay_no';
+    showAIResponse(noNode, 700);
+  }
+}
+
+function handleCancelBtn(){
+  if(isTyping) return;
+  addUserMsg("I'd like to cancel my appointment.");
+  showAIResponse('cancel_q', 700);
+}
+
+function handleSend(){
+  const inp = document.getElementById('chat-inp');
+  const text = inp.value.trim();
+  if(!text || isTyping) return;
+  inp.value = '';
+  updateSendBtn();
+  addUserMsg(text);
+  const lc = text.toLowerCase();
+
+  if(triviaMode){
+    triviaMode = false;
+    const correct = lc.includes('3') || lc.includes('three') || lc.includes('±3');
+    showAIResponse(correct ? 'trivia_right' : 'trivia_wrong', 800);
+    return;
+  }
+  if(addressEditMode){
+    addressEditMode = false;
+    messages.push({role:'ai', text:`Address updated to "${text}". 📍\n\nShuttle confirmed for your appointment! 🚌 The driver will pick you up at your new address at the scheduled time.`});
+    patientState[activeId].confirmed = true;
+    currentNode = 'done';
+    renderSidebar();
+    renderMessages();
+    return;
+  }
+
+  // Generic intent detection
+  if(lc.includes('confirm') || (lc.startsWith('yes') && lc.length < 10)){
+    showAIResponse('confirmed', 700);
+  } else if(lc.includes('cancel')){
+    showAIResponse('cancel_q', 700);
+  } else if(lc.includes('reschedule') || lc.includes('change') || lc.includes('different time')){
+    showAIResponse('slots_intro', 700);
+  } else if(lc.includes('transport') || lc.includes('ride') || lc.includes('shuttle')){
+    showAIResponse('transport_q', 700);
+  } else if(lc.includes('copay') || lc.includes('cost') || lc.includes('afford')){
+    showAIResponse(activeId==='marcus' ? 'copay_help' : 'copay_q', 700);
+  } else {
+    messages.push({role:'ai', text:"I'm here to help with your infusion appointment. You can confirm, reschedule, ask about transport, co-pay help, or talk to staff."});
+    renderMessages();
+  }
+}
+
+function switchPatient(id){
+  if(id === activeId && messages.length > 0) return;
+  activeId = id;
+  messages = [];
+  currentNode = 'greeting';
+  isTyping = false;
+  calendarAdded = false;
+  triviaMode = false;
+  addressEditMode = false;
+  copayConfirmMode = false;
+
+  renderSidebar();
+
+  // Show greeting after short delay
+  isTyping = true;
+  renderMessages();
+  setTimeout(()=>{
+    isTyping = false;
+    const greetNode = getFlow().greeting;
+    const capVal = NODE_CAPS['greeting'];
+    const msg = {role:'ai', text: greetNode.aiText};
+    if(capVal) msg.caps = Array.isArray(capVal) ? capVal : [capVal];
+    if(msg.caps && msg.caps.includes('nudges')) msg.strategyName = getPatient().strategy;
+    messages.push(msg);
+    renderMessages();
+  }, 600);
+}
+
+function updateSendBtn(){
+  const v = document.getElementById('chat-inp').value.trim();
+  const btn = document.getElementById('send-btn');
+  btn.className = v ? 'send-btn on' : 'send-btn off';
+}
+
+function openArticle(idx){
+  const item = LIBRARY[idx];
+  const article = ARTICLES[idx];
+  const overlay = document.getElementById('modal-overlay');
+  const badge = document.getElementById('modal-badge');
+  const dur = document.getElementById('modal-dur');
+  const title = document.getElementById('modal-title');
+  const body = document.getElementById('modal-body');
+
+  badge.textContent = item.type;
+  badge.style.background = item.bg;
+  badge.style.color = item.color;
+  badge.style.border = `1px solid ${item.color}40`;
+
+  dur.innerHTML = `⏱ ${item.dur} read`;
+  title.textContent = item.title;
+  body.innerHTML = article.body;
+
+  overlay.classList.add('open');
+  document.getElementById('modal-body').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeArticle(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e){
+  if(e.target === document.getElementById('modal-overlay')) closeArticle();
+}
+
+function escHtml(t){
+  return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Node → Capability mapping ───────────────────
+const NODE_CAPS = {
+  greeting:['nudges','scheduling'],
+  confirmed:'scheduling', cancel_q:'scheduling', cancel_yes:'scheduling', cancel_no:'scheduling',
+  remind_later:'scheduling', coord:'scheduling', cancel_confirmed:'scheduling', cancel_reschedule:'scheduling',
+  have_transport:'calendar',
+  slots_intro:'windows', slots_wknd:'windows', slot_nov7:'windows', slot_nov9:'windows',
+  slot_sat:'windows', slot_sun:'windows', slot_thu:'windows', slot_fri:'windows',
+  slot_tue:'windows', slot_wed:'windows',
+  transport_q:'transport', arrange_ride:'transport', shuttle_q:'transport', shuttle_ok:'transport',
+  shuttle_edit:'transport', insurance:'transport', rideshare:'transport',
+  copay_help:'copay', copay_q:'copay', copay_details:'copay', apply_now:'copay',
+  apply_and_confirm:'copay', skip_copay:'copay', copay_yes:'copay', copay_no:'copay',
+  cost_yes:'copay', cost_no:'copay', its_cost:'copay',
+  trivia_q:'education', trivia_right:'education', trivia_wrong:'education', library:'education',
+  show_data:'education', what_to_expect:'education', not_sure:'education',
+  staff:'escalation', talk_clinician:'escalation', have_questions:'escalation',
+  cancel_staff:'escalation', other_reason:'escalation', personal:'escalation',
+  calendar_added:'calendar',
+  slot_fri:'windows', slot_sat:'windows',
+};
+
+const CAP_LABELS = {
+  nudges:    { icon:'🧠', name:'Behavioral Nudge Engine',         color:'#6366F1' },
+  scheduling:{ icon:'📅', name:'Smart Appointment Management',    color:'#2563EB' },
+  windows:   { icon:'⏱', name:'±3-Day Clinical Safety Window',   color:'#059669' },
+  transport: { icon:'🚌', name:'Transportation Coordination',     color:'#7C3AED' },
+  copay:     { icon:'💰', name:'Copay Assistance Activation',     color:'#D97706' },
+  education: { icon:'📚', name:'Patient Health Education',        color:'#DC2626' },
+  escalation:{ icon:'👤', name:'Human-in-the-Loop Escalation',   color:'#0D9488' },
+  calendar:  { icon:'🔔', name:'Calendar & Reminder Integration', color:'#4338CA' },
+  waitlist:  { icon:'🔄', name:'Waitlist Slot Recovery',          color:'#16A34A' },
+};
+
+// ─── Capabilities data ────────────────────────────
+// ═══════════════════════════════════════════════════
+// FEATURE LAB
+// ═══════════════════════════════════════════════════
+const CAPS = [
+  { id:'nudges', icon:'🧠', name:'Behavioral Nudge Engine', color:'#6366F1', bg:'#EEF2FF',
+    why:'Patients respond to different motivational framings depending on their adherence history and psychological profile. Matching message type — positive reinforcement for high-adherence patients, loss aversion for at-risk patients — produces measurably higher confirmation rates than a single generic reminder.',
+    on:true },
+  { id:'scheduling', icon:'📅', name:'Smart Appointment Management', color:'#2563EB', bg:'#EFF6FF',
+    why:'Friction in the confirmation step is the single highest-impact intervention point. One-tap responses with embedded clinical context eliminate the cognitive effort that causes patients to defer action — a core principle of behavioral design.',
+    on:true },
+  { id:'windows', icon:'⏱', name:'±3-Day Clinical Safety Windows', color:'#059669', bg:'#ECFDF5',
+    why:'Infliximab serum levels decline predictably between infusions. Rescheduling beyond ±3 days risks dropping below the therapeutic threshold and losing disease control. Constraining available slots to safe windows is clinically necessary — not just convenient.',
+    on:true },
+  { id:'transport', icon:'🚌', name:'Transportation Coordination', color:'#7C3AED', bg:'#F5F3FF',
+    why:'Logistical barriers — distance, mobility, scheduling — account for approximately 25% of infusion no-shows. Proactive, autonomous ride coordination offered before the patient has to ask converts the most common practical barrier into a solved problem.',
+    on:true },
+  { id:'copay', icon:'💰', name:'Copay Assistance Activation', color:'#D97706', bg:'#FFFBEB',
+    why:'Cost concerns cause roughly 30% of biologic treatment delays. Surfacing financial support programs at the start of the conversation — rather than burying them in FAQs — removes cost as a decision factor before it becomes a stated reason to cancel.',
+    on:true },
+  { id:'education', icon:'📚', name:'Patient Health Education', color:'#DC2626', bg:'#FFF5F5',
+    why:'Patients who understand why consistent timing matters are intrinsically motivated, not just compliant. Health literacy creates durable adherence that outlasts nudges and reminders — and reduces the need for escalation.',
+    on:true },
+  { id:'escalation', icon:'👤', name:'Human-in-the-Loop Escalation', color:'#0D9488', bg:'#F0FDFA',
+    why:'AI handles predictable interactions confidently; complex clinical concerns require human judgment. A clear, always-available escalation path maintains patient trust, ensures clinical safety, and flags high-risk cases to coordinators before situations deteriorate.',
+    on:true },
+  { id:'calendar', icon:'🔔', name:'Calendar & Reminder Integration', color:'#4338CA', bg:'#EEF2FF',
+    why:'External reminders embedded into a patient\'s existing system dramatically reduce forgotten appointments. Reducing reliance on memory is a foundational principle of behavioral design: make the right behavior the path of least resistance.',
+    on:true },
+  { id:'waitlist', icon:'🔄', name:'Waitlist Slot Recovery', color:'#16A34A', bg:'#DCFCE7',
+    why:'Every cancellation is a revenue and care opportunity. Automated matching and outreach to waitlist patients fills released slots within minutes — converting lost chair time into treated patients at zero manual effort from clinic staff.',
+    on:true },
+];
+
+const capToggles = {};
+CAPS.forEach(c => capToggles[c.id] = c.on);
+let demoCalAdded = false;
+
+function openCapabilities(){
+  demoCalAdded = false;
+  renderCapabilities();
+  document.getElementById('cap-overlay').classList.add('open');
+}
+function closeCapabilities(){
+  document.getElementById('cap-overlay').classList.remove('open');
+}
+
+function toggleCap(id){
+  capToggles[id] = !capToggles[id];
+  // Re-render just that card
+  renderCapabilities();
+}
+
+function renderCapabilities(){
+  const grid = document.getElementById('cap-grid');
+  grid.innerHTML = CAPS.map(cap => {
+    const on = capToggles[cap.id];
+    return `
+    <div class="cap-card${on?'':' is-off'}">
+      <div class="cap-top">
+        <div class="cap-id">
+          <div class="cap-ico" style="background:${cap.bg}">${cap.icon}</div>
+          <div>
+            <div class="cap-name">${cap.name}</div>
+            <div class="cap-on-lbl ${on?'is-on-lbl':'is-off-lbl'}">${on?'● Enabled':'○ Disabled'}</div>
+          </div>
+        </div>
+        <button class="tog ${on?'on':'off'}" onclick="toggleCap('${cap.id}')">
+          <div class="tog-k"></div>
+        </button>
+      </div>
+      <div class="cap-why">
+        <div class="cap-why-lbl">Why it works</div>
+        <div class="cap-why-txt">${cap.why}</div>
+      </div>
+      <div class="cap-demo">
+        <div class="cap-demo-lbl">Try it</div>
+        <div class="cap-demo-inner">${renderCapDemo(cap.id)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCapDemo(id){
+  switch(id){
+
+    case 'nudges': return `
+      <div style="display:flex;flex-direction:column;gap:6px;width:100%">
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="s-pill" style="background:#DCFCE7;color:#16A34A">⚡ Positive Reinforcement <span style="font-weight:500;opacity:.7">— Daniel, 96%</span></span>
+          <span class="s-pill" style="background:#FEE2E2;color:#DC2626">📉 Loss Aversion <span style="font-weight:500;opacity:.7">— Jessica, 72%</span></span>
+          <span class="s-pill" style="background:#FFFBEB;color:#B45309">💰 Cost Framing <span style="font-weight:500;opacity:.7">— Marcus, 61%</span></span>
+          <span class="s-pill" style="background:#EDE9FE;color:#7C3AED">🚗 Facilitation <span style="font-weight:500;opacity:.7">— Linda, 68%</span></span>
+          <span class="s-pill" style="background:#F3E8FF;color:#7C3AED">📊 Social Proof <span style="font-weight:500;opacity:.7">— Tyler, 43%</span></span>
+        </div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Behavioral Nudge strategy is assigned based on patient history</div>
+      </div>`;
+
+    case 'scheduling': return `
+      <button class="d-btn d-green" onclick="demoConfirm()">✓ Confirm Visit</button>
+      <button class="d-btn d-blue" onclick="demoSchedule()">📅 Change Time</button>
+      <button class="d-btn d-red" onclick="demoCancel()">✕ Cancel</button>`;
+
+    case 'windows': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <div class="m-slot">
+            <div class="m-slot-day">Friday</div>
+            <div class="m-slot-date">Nov 7</div>
+            <div class="m-slot-time">9:00 AM</div>
+            <div class="m-slot-badge" style="background:#DCFCE7;color:#16A34A">±1 day ✓</div>
+          </div>
+          <div class="m-slot">
+            <div class="m-slot-day">Sunday</div>
+            <div class="m-slot-date">Nov 9</div>
+            <div class="m-slot-time">2:30 PM</div>
+            <div class="m-slot-badge" style="background:#FEF3C7;color:#B45309">±3 days ✓</div>
+          </div>
+          <div class="m-slot m-slot-blocked">
+            <div class="m-slot-day" style="color:#DC2626">Monday</div>
+            <div class="m-slot-date" style="color:#9CA3AF;text-decoration:line-through">Nov 10</div>
+            <div class="m-slot-time" style="color:#9CA3AF">—</div>
+            <div class="m-slot-badge" style="background:#FEE2E2;color:#DC2626">±4 days ✗</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Only dates within the therapeutic safety window are offered. Slots outside are hidden — never shown to patients.</div>
+      </div>`;
+
+    case 'transport': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="d-btn d-indigo" onclick="demoTransport()">🚌 Clinic Shuttle</button>
+          <button class="d-btn d-teal">🛡 Insurance Ride</button>
+          <button class="d-btn d-amber">📱 Rideshare Voucher</button>
+        </div>
+        <div class="m-addr" id="demo-addr" style="display:none">
+          <div style="font-size:10px;font-weight:700;margin-bottom:2px">📍 Confirm pickup address</div>
+          <div style="font-size:12px;font-style:italic">"1500 Louisiana St, Houston, TX 77002"</div>
+          <div style="display:flex;gap:6px">
+            <button class="d-btn d-indigo" style="font-size:10px;padding:5px 10px" onclick="document.getElementById('demo-addr').style.display='none'">✓ Correct</button>
+            <button class="d-btn d-gray" style="font-size:10px;padding:5px 10px">✏ Update</button>
+          </div>
+        </div>
+      </div>`;
+
+    case 'copay': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div class="m-copay">
+          <div class="m-copay-prog">Janssen CarePath Savings Program</div>
+          <div class="m-copay-amt">$0 copay</div>
+          <div class="m-copay-sub">Up to $20,000/year in out-of-pocket support for infliximab</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button class="d-btn d-amber" style="font-size:11px">✅ Start Application — 5 min</button>
+            <button class="d-btn d-gray" style="font-size:11px">❓ How does it work?</button>
+          </div>
+        </div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Shown to Marcus (financially strained) as the first message — before any appointment confirmation</div>
+      </div>`;
+
+    case 'education': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${LIBRARY.map((item,idx) => `
+          <div class="m-lib" style="background:${item.bg};border:1px solid ${item.color}25" onclick="openArticle(${idx})">
+            <div class="m-lib-type" style="color:${item.color}">${item.type} · ${item.dur}</div>
+            <div class="m-lib-ttl">${item.title}</div>
+          </div>`).join('')}
+        </div>
+        <button class="d-btn d-amber" style="align-self:flex-start">🧠 Try Health Trivia</button>
+      </div>`;
+
+    case 'escalation': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div class="m-esc">👋 Connecting you to clinical coordinator now...<br>
+          <span style="font-size:10px;font-weight:500;color:#0F766E;margin-top:3px;display:block">Your conversation context has been shared — coordinator is fully briefed</span>
+        </div>
+        <button class="d-btn d-teal" style="align-self:flex-start">👤 Talk to Care Team</button>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Triggered automatically for complex clinical concerns or patient request — always available as a safety net</div>
+      </div>`;
+
+    case 'calendar': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div class="m-cal" id="demo-cal-card">
+          <span style="font-size:18px">📅</span>
+          <div class="m-cal-info">
+            <div class="m-cal-dt">Thursday, November 6 · 10:00 AM</div>
+            <div class="m-cal-loc">Main Infusion Suite, Floor 4</div>
+          </div>
+          <button class="cal-btn" id="demo-cal-btn" onclick="demoCal()" style="font-size:11px">+ Add</button>
+        </div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Offered immediately after confirmation — embeds the appointment into the patient's existing system, reducing memory reliance</div>
+      </div>`;
+
+    case 'waitlist': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div class="m-waitlist">
+          <div class="m-waitlist-flow">
+            <span class="wl-tag" style="background:#FEE2E2;color:#DC2626">Slot released — Daniel</span>
+            <span style="color:#9CA3AF;font-size:14px">→</span>
+            <span class="wl-tag" style="background:#DCFCE7;color:#16A34A">Matched — John Smith</span>
+            <span style="color:#9CA3AF;font-size:14px">→</span>
+            <span class="wl-tag" style="background:#EFF6FF;color:#2563EB">AI outreach sent ✓</span>
+          </div>
+          <div style="font-size:10px;font-weight:500;color:#15803D">Released slot filled in &lt;2 minutes · Conversion rate 88%</div>
+        </div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Triggered automatically when any patient cancels or reschedules — zero manual effort from clinic staff</div>
+      </div>`;
+
+    default: return '';
+  }
+}
+
+// Demo action shortcuts — switch patient and navigate to relevant flow
+function demoConfirm(){
+  closeCapabilities();
+  switchPatient('daniel');
+  setTimeout(()=>{ showAIResponse('confirmed',700); addMsg('user',"Yes, I'll be there."); renderMessages(); },700);
+}
+function demoSchedule(){
+  closeCapabilities();
+  switchPatient('jessica');
+  setTimeout(()=>{ showAIResponse('slots_wknd',700); addMsg('user',"Can I see other available times?"); renderMessages(); },700);
+}
+function demoCancel(){
+  closeCapabilities();
+  switchPatient('marcus');
+  setTimeout(()=>{ addMsg('user',"I can't make it."); showAIResponse('cant_make_it',700); renderMessages(); },700);
+}
+function demoTransport(){
+  const addr = document.getElementById('demo-addr');
+  if(addr) addr.style.display = addr.style.display==='none'?'flex':'none';
+}
+function demoCal(){
+  const btn = document.getElementById('demo-cal-btn');
+  if(btn){ btn.outerHTML = '<div class="cal-added">✓ Added</div>'; }
+}
+function demoTrivia(){
+  closeCapabilities();
+  switchPatient('daniel');
+  setTimeout(()=>{ addMsg('user',"Health Trivia, please!"); showAIResponse('trivia_q',700); },700);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+renderSidebar();
+switchPatient('daniel');
+</script>
+</body>
+</html>
