@@ -1554,9 +1554,11 @@ function openCapabilities(){
   demoCalAdded = false;
   renderCapabilities();
   document.getElementById('cap-overlay').classList.add('open');
+  history.replaceState(null, '', '#feature-lab');
 }
 function closeCapabilities(){
   document.getElementById('cap-overlay').classList.remove('open');
+  history.replaceState(null, '', window.location.pathname);
 }
 
 function toggleCap(id){
@@ -1759,6 +1761,7 @@ function demoTrivia(){
 // ═══════════════════════════════════════════════════
 renderSidebar();
 switchPatient('daniel');
+if(window.location.hash === '#feature-lab') openCapabilities();
 </script>
 </body>
 </html>
