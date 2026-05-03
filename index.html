@@ -1523,6 +1523,9 @@ const CAPS = [
   { id:'scheduling', icon:'📅', name:'Smart Appointment Management', color:'#2563EB', bg:'#EFF6FF',
     why:'Friction in the confirmation step is the single highest-impact intervention point. One-tap responses with embedded clinical context eliminate the cognitive effort that causes patients to defer action — a core principle of behavioral design.',
     on:true },
+  { id:'education', icon:'📚', name:'Patient Health Education', color:'#DC2626', bg:'#FFF5F5',
+    why:'Patients who understand why consistent timing matters are intrinsically motivated, not just compliant. Health literacy creates durable adherence that outlasts nudges and reminders — and reduces the need for escalation.',
+    on:true },
   { id:'windows', icon:'⏱', name:'±3-Day Clinical Safety Windows', color:'#059669', bg:'#ECFDF5',
     why:'Infliximab serum levels decline predictably between infusions. Rescheduling beyond ±3 days risks dropping below the therapeutic threshold and losing disease control. Constraining available slots to safe windows is clinically necessary — not just convenient.',
     on:true },
@@ -1531,9 +1534,6 @@ const CAPS = [
     on:true },
   { id:'copay', icon:'💰', name:'Copay Assistance Activation', color:'#D97706', bg:'#FFFBEB',
     why:'Cost concerns cause roughly 30% of biologic treatment delays. Surfacing financial support programs at the start of the conversation — rather than burying them in FAQs — removes cost as a decision factor before it becomes a stated reason to cancel.',
-    on:true },
-  { id:'education', icon:'📚', name:'Patient Health Education', color:'#DC2626', bg:'#FFF5F5',
-    why:'Patients who understand why consistent timing matters are intrinsically motivated, not just compliant. Health literacy creates durable adherence that outlasts nudges and reminders — and reduces the need for escalation.',
     on:true },
   { id:'escalation', icon:'👤', name:'Human-in-the-Loop Escalation', color:'#0D9488', bg:'#F0FDFA',
     why:'AI handles predictable interactions confidently; complex clinical concerns require human judgment. A clear, always-available escalation path maintains patient trust, ensures clinical safety, and flags high-risk cases to coordinators before situations deteriorate.',
@@ -1603,13 +1603,13 @@ function renderCapDemo(id){
     case 'nudges': return `
       <div style="display:flex;flex-direction:column;gap:6px;width:100%">
         <div style="display:flex;flex-wrap:wrap;gap:5px">
-          <span class="s-pill" style="background:#DCFCE7;color:#16A34A">⚡ Positive Reinforcement <span style="font-weight:500;opacity:.7">— Daniel, 96%</span></span>
-          <span class="s-pill" style="background:#FEE2E2;color:#DC2626">📉 Loss Aversion <span style="font-weight:500;opacity:.7">— Jessica, 72%</span></span>
-          <span class="s-pill" style="background:#FFFBEB;color:#B45309">💰 Cost Framing <span style="font-weight:500;opacity:.7">— Marcus, 61%</span></span>
-          <span class="s-pill" style="background:#EDE9FE;color:#7C3AED">🚗 Facilitation <span style="font-weight:500;opacity:.7">— Linda, 68%</span></span>
-          <span class="s-pill" style="background:#F3E8FF;color:#7C3AED">📊 Social Proof <span style="font-weight:500;opacity:.7">— Tyler, 43%</span></span>
+          <span class="s-pill" style="background:#DCFCE7;color:#16A34A;cursor:pointer" onclick="closeCapabilities();switchPatient('daniel')">⚡ Positive Reinforcement <span style="font-weight:500;opacity:.7">— Daniel, 96%</span></span>
+          <span class="s-pill" style="background:#FEE2E2;color:#DC2626;cursor:pointer" onclick="closeCapabilities();switchPatient('jessica')">📉 Loss Aversion <span style="font-weight:500;opacity:.7">— Jessica, 72%</span></span>
+          <span class="s-pill" style="background:#FFFBEB;color:#B45309;cursor:pointer" onclick="closeCapabilities();switchPatient('marcus')">💰 Cost Framing <span style="font-weight:500;opacity:.7">— Marcus, 61%</span></span>
+          <span class="s-pill" style="background:#EDE9FE;color:#7C3AED;cursor:pointer" onclick="closeCapabilities();switchPatient('linda')">🚗 Facilitation <span style="font-weight:500;opacity:.7">— Linda, 68%</span></span>
+          <span class="s-pill" style="background:#F3E8FF;color:#7C3AED;cursor:pointer" onclick="closeCapabilities();switchPatient('tyler')">📊 Social Proof <span style="font-weight:500;opacity:.7">— Tyler, 43%</span></span>
         </div>
-        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Behavioral Nudge strategy is assigned based on patient history</div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Behavioral Nudge strategy is assigned based on patient history — click any pill to open that patient's conversation</div>
       </div>`;
 
     case 'scheduling': return `
@@ -1620,19 +1620,19 @@ function renderCapDemo(id){
     case 'windows': return `
       <div style="display:flex;flex-direction:column;gap:8px;width:100%">
         <div style="display:flex;gap:7px;flex-wrap:wrap">
-          <div class="m-slot">
+          <div class="m-slot" style="cursor:pointer" onclick="closeCapabilities();switchPatient('jessica');setTimeout(()=>showAIResponse('slots_wknd',700),700)">
             <div class="m-slot-day">Friday</div>
             <div class="m-slot-date">Nov 7</div>
             <div class="m-slot-time">9:00 AM</div>
             <div class="m-slot-badge" style="background:#DCFCE7;color:#16A34A">±1 day ✓</div>
           </div>
-          <div class="m-slot">
+          <div class="m-slot" style="cursor:pointer" onclick="closeCapabilities();switchPatient('jessica');setTimeout(()=>showAIResponse('slots_wknd',700),700)">
             <div class="m-slot-day">Sunday</div>
             <div class="m-slot-date">Nov 9</div>
             <div class="m-slot-time">2:30 PM</div>
             <div class="m-slot-badge" style="background:#FEF3C7;color:#B45309">±3 days ✓</div>
           </div>
-          <div class="m-slot m-slot-blocked">
+          <div class="m-slot m-slot-blocked" style="cursor:not-allowed">
             <div class="m-slot-day" style="color:#DC2626">Monday</div>
             <div class="m-slot-date" style="color:#9CA3AF;text-decoration:line-through">Nov 10</div>
             <div class="m-slot-time" style="color:#9CA3AF">—</div>
@@ -1677,12 +1677,11 @@ function renderCapDemo(id){
       <div style="display:flex;flex-direction:column;gap:8px;width:100%">
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${LIBRARY.map((item,idx) => `
-          <div class="m-lib" style="background:${item.bg};border:1px solid ${item.color}25" onclick="openArticle(${idx})">
+          <div class="m-lib" style="background:${item.bg};border:1px solid ${item.color}25;cursor:pointer" onclick="openArticle(${idx})">
             <div class="m-lib-type" style="color:${item.color}">${item.type} · ${item.dur}</div>
             <div class="m-lib-ttl">${item.title}</div>
           </div>`).join('')}
         </div>
-        <button class="d-btn d-amber" style="align-self:flex-start">🧠 Try Health Trivia</button>
       </div>`;
 
     case 'escalation': return `
