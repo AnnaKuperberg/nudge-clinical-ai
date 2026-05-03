@@ -3,7 +3,8 @@
 
 Non-adherence costs infusion centers 15–25% of scheduled volume. **nudge.** demonstrates how behavioral science, autonomous barrier removal, and smart waitlist matching can recover lost infusions at scale — without a single generic reminder.
 
-[**Try Live Demo →**](https://annakuperberg.github.io/nudge-clinical-ai/) &nbsp;|&nbsp; [**Feature Lab →**](file:///Users/annakuperberg/Downloads/nudge-v7.html#feature-lab)
+[**Try Live Demo →**](https://annakuperberg.github.io/nudge-clinical-ai/) &nbsp;|&nbsp; [**Feature Lab →**]((https://annakuperberg.github.io/nudge-clinical-ai/#feature-lab
+))
 
 ---
 
