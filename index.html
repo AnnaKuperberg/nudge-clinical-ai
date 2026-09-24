@@ -1,14 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>nudge. — Patient Demo</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Outfit',sans-serif;display:flex;height:100vh;overflow:hidden;background:#0D1117;color:#C9D1D9}
+body{font-family:'Outfit',sans-serif;display:flex;height:100vh;height:100dvh;overflow:hidden;background:#0D1117;color:#C9D1D9;-webkit-text-size-adjust:100%}
 
 /* ─── SIDEBAR ─── */
 #sb{width:296px;min-width:296px;background:#0D1117;border-right:1px solid #21262D;display:flex;flex-direction:column;overflow-y:auto}
@@ -21,6 +20,7 @@ body{font-family:'Outfit',sans-serif;display:flex;height:100vh;overflow:hidden;b
 .brand-tag{font-size:9px;font-weight:700;color:#30363D;letter-spacing:.2em;text-transform:uppercase}
 .brand-sub{font-size:10px;color:#7D8590;margin-top:2px}
 
+#sb>*{flex-shrink:0}
 .sb-sec{padding:12px 14px}
 .sb-lbl{font-size:9px;font-weight:700;letter-spacing:.2em;color:#8B949E;text-transform:uppercase;margin-bottom:4px}
 .sb-sublbl{font-size:9px;color:#484F58;font-weight:500;margin-bottom:10px}
@@ -333,14 +333,95 @@ body{font-family:'Outfit',sans-serif;display:flex;height:100vh;overflow:hidden;b
 .status-confirmed{background:#DCFCE7;color:#15803D}
 .status-canceled{background:#FEE2E2;color:#DC2626}
 .status-pending{background:#FEF3C7;color:#B45309}
+
+/* ─── MOBILE / RESPONSIVE ─── */
+.menu-btn,.sb-close,#sb-backdrop{display:none}
+.hdr-pt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+img,svg,video{max-width:100%}
+
+@media (max-width:1100px){
+  .cap-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media (max-width:768px){
+  /* Sidebar becomes a slide-in drawer */
+  #sb{position:fixed;top:0;left:0;height:100vh;height:100dvh;z-index:80;width:min(320px,86vw);min-width:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+      transform:translateX(-100%);transition:transform .25s ease;
+      padding-bottom:calc(16px + env(safe-area-inset-bottom));box-shadow:none}
+  body.sb-open #sb{transform:translateX(0);box-shadow:8px 0 32px rgba(0,0,0,.45)}
+  #sb-backdrop{display:block;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55);
+      opacity:0;pointer-events:none;transition:opacity .25s ease}
+  body.sb-open #sb-backdrop{opacity:1;pointer-events:auto}
+  .brand-row{align-items:center}
+  .sb-close{display:flex;align-items:center;justify-content:center;margin-left:auto;width:36px;height:36px;
+      border-radius:50%;border:1px solid #30363D;background:#161B22;color:#C9D1D9;font-size:15px;cursor:pointer}
+  .pt-card{padding:12px}
+
+  #main{width:100%}
+
+  /* Chat header */
+  .chat-hdr{padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));gap:8px}
+  .menu-btn{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:9px;border:1.5px solid #E5E7EB;
+      background:#fff;color:#374151;font:700 12px 'Outfit',sans-serif;cursor:pointer;flex-shrink:0}
+  .hdr-dot,.hdr-div,.hdr-lbl,.hdr-r{display:none}
+  .hdr-pt{flex:1;font-size:13px;color:#6B7280}
+  .lab-btn{margin-left:0;padding:7px 11px}
+
+  /* Messages */
+  .msgs{padding:14px 12px}
+  .bubble{max-width:88%;font-size:14px}
+  .bbl-wrap{max-width:88%}
+  .stats-card,.addr-card,.cal-card,.hint-box{max-width:100%}
+  .rbtn{padding:10px 16px;font-size:13px}
+  .slot-card{flex:1 1 calc(50% - 5px);min-width:0}
+
+  /* Input: 16px stops iOS Safari from zooming on focus */
+  .chat-footer{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .chat-inp{font-size:16px;padding:11px 14px}
+  .send-btn{width:46px;height:46px;flex-shrink:0}
+
+  /* Article modal */
+  #modal-overlay{padding:10px;align-items:flex-end}
+  #modal-panel{max-height:92vh;max-height:92dvh;border-radius:18px}
+  .modal-hdr{padding:18px 56px 14px 18px}
+  .modal-title{font-size:19px}
+  .modal-close{top:14px;right:14px;width:38px;height:38px}
+  .modal-body{padding:18px 18px 22px;font-size:15px}
+  .modal-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .modal-footer{padding:12px 18px;padding-bottom:max(12px,env(safe-area-inset-bottom));flex-direction:column-reverse;align-items:stretch;gap:10px}
+  .modal-footer-note{text-align:center}
+  .modal-done-btn{width:100%;padding:12px}
+
+  /* Feature Lab */
+  .cap-hdr{padding:0 14px;padding-top:env(safe-area-inset-top);height:auto;min-height:52px}
+  .cap-brand-platform,.cap-brand-div:first-of-type,.cap-hdr-right{display:none}
+  .cap-grid{grid-template-columns:1fr;padding:14px;gap:12px}
+  .cap-card{padding:16px}
+  .cap-cta{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));flex-direction:column;align-items:stretch;gap:10px}
+  .cap-cta-icon,.cap-cta-sub{display:none}
+  .cap-cta-btn{width:100%;justify-content:center;padding:13px 16px}
+}
+
+@media (max-width:400px){
+  .lab-txt{display:none}
+  .lib-grid{grid-template-columns:1fr}
+  .slot-card{flex-basis:100%}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #sb,#sb-backdrop{transition:none}
+}
 </style>
 </head>
 <body>
+
+<div id="sb-backdrop" onclick="closeSidebar()"></div>
 
 <aside id="sb">
   <div class="brand">
     <div class="brand-row">
       <span class="brand-name">nudge.</span>
+      <button class="sb-close" onclick="closeSidebar()" aria-label="Close patient list">✕</button>
     </div>
     <div class="brand-sub">Infusion Adherence Platform · Patient View</div>
   </div>
@@ -394,12 +475,13 @@ body{font-family:'Outfit',sans-serif;display:flex;height:100vh;overflow:hidden;b
 
 <main id="main">
   <div class="chat-hdr">
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Open patient list">☰ <span>Patients</span></button>
     <div class="hdr-dot"></div>
     <span class="hdr-lbl">Patient Assistant</span>
     <div class="hdr-div"></div>
     <span class="hdr-pt" id="hdr-pt"></span>
     <div class="hdr-r" id="hdr-r"></div>
-    <button class="lab-btn" onclick="openCapabilities()">🔬 Feature Lab</button>
+    <button class="lab-btn" onclick="openCapabilities()">🔬 <span class="lab-txt">Feature Lab</span></button>
   </div>
 
   <div class="msgs" id="msgs"></div>
@@ -1762,6 +1844,18 @@ function demoTrivia(){
 renderSidebar();
 switchPatient('daniel');
 if(window.location.hash === '#feature-lab') openCapabilities();
+
+// ═══════════════════════════════════════════════════
+// MOBILE DRAWER (patient list)
+// ═══════════════════════════════════════════════════
+function openSidebar(){ document.body.classList.add('sb-open'); }
+function closeSidebar(){ document.body.classList.remove('sb-open'); }
+function toggleSidebar(){ document.body.classList.toggle('sb-open'); }
+document.getElementById('pt-list').addEventListener('click', e => { if(e.target.closest('.pt-card')) closeSidebar(); });
+document.getElementById('cancel-appt-btn').addEventListener('click', closeSidebar);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSidebar(); });
+window.matchMedia('(min-width:769px)').addEventListener('change', e => { if(e.matches) closeSidebar(); });
+
 </script>
 </body>
 </html>
