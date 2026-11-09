@@ -11,7 +11,7 @@ Non-adherence costs infusion centers 15–25% of scheduled volume. **nudge.** de
 
 This is a fully self-contained, zero-cost portfolio demonstration built with hardcoded branching mock responses. No live API calls, no login required, no API key exposure. A hiring manager can open it in a browser and explore every capability immediately.
 
-The demo simulates a real clinical AI assistant managing 5 distinct patient personas across a complete appointment confirmation workflow — from initial outreach through barrier resolution, education, and escalation.
+The demo simulates a real clinical AI assistant managing 5 distinct patient personas across a complete appointment confirmation workflow — from patient opt-in through outreach, barrier resolution, education, and escalation. Every conversation opens with a privacy-first consent screen, and an AI disclosure stays visible throughout.
 
 ---
 
@@ -19,7 +19,11 @@ The demo simulates a real clinical AI assistant managing 5 distinct patient pers
 
 Infusion centers lose 15–25% of scheduled volume to non-adherence. For every 100 Crohn's patients on infliximab receiving 8 infusions/year, 120–200 infusions never happen — empty chairs that could treat waitlist patients or accommodate new referrals.
 
+
+
 ![The Problem: Lost Infusion Volume](docs/images/problem.png)
+
+
 
 **nudge.** demonstrates how to return these lost infusions to the system through:
 - Personalized behavioral nudges matched to adherence profile
@@ -41,7 +45,7 @@ Each persona is designed to demonstrate a distinct adherence challenge and a cor
 | **Linda Garcia** | Logistical Barrier | 68% | Facilitation — proactive ride coordination before patient asks |
 | **Tyler Nguyen** | Disengaged Skeptic | 43% | Social Proof + Re-engagement — outcome data, clinician escalation |
 
-Each patient has a fully branching conversation tree covering every workflow path.
+Each patient has a fully branching conversation tree covering every workflow path. Every conversation starts with the opt-in screen — the treatment conversation begins only after the patient chooses how (and whether) Nudge may contact them.
 
 ---
 
@@ -49,7 +53,17 @@ Each patient has a fully branching conversation tree covering every workflow pat
 
 Every feature is documented and demoed interactively in the **Feature Lab** — accessible from the chat header.
 
+
+
 ![How nudge. Works](docs/images/slide-how-it-works.jpg)
+
+
+
+### 🔐 Privacy-First Opt-In & Opt-Out
+Before any treatment conversation, patients choose how Nudge may contact them. Text messages and AI voice calls are separate opt-ins, consent is never a condition of care, and declining doesn't change treatment. The screen states message frequency, that message and data rates may apply, and that texts and calls may not be fully private. **STOP** unsubscribes at any point, **HELP** returns program info, and an "I changed my mind" path lets patients opt in later. Designed around TCPA/FCC consent rules (including AI-generated voice), CTIA messaging principles, and HIPAA's right to request confidential communications.
+
+### 🤖 AI Transparency & Safety Disclaimer
+A persistent banner tells patients they're chatting with an AI, not a person, with a one-tap **Talk to a person** link. The full disclaimer — AI can make mistakes, not diagnostic, not a replacement for the care team, call 911 for emergencies or serious reactions — appears on the opt-in screen and under the message input. Patients who opt in to voice calls are told each call will state it's AI at the start and end. Designed to meet California AB 3030 (disclosure plus a clear path to a human for AI-generated clinical communications) and to keep Nudge's intended use within low-risk adherence support.
 
 ### 🧠 Behavioral Nudge Engine
 Five evidence-based strategies assigned per patient based on adherence history and risk profile. The same appointment message is completely different for Daniel (streak celebration) vs. Tyler (outcome statistics). Strategy is visible on every AI message via a persistent feature tag.
@@ -76,7 +90,7 @@ Four full clinical articles available in the Health Library, each opening in a d
 Interactive health trivia reinforces the ±3-day safety window concept.
 
 ### 👤 Human-in-the-Loop Escalation
-Always-available escalation to clinical coordinators or the treating physician (Dr. Torres for Tyler). Conversation context is shared automatically so coordinators are fully briefed. Triggered automatically for complex clinical concerns or explicit patient request.
+Always-available escalation to clinical coordinators or the treating physician (Dr. Torres for Tyler). Conversation context is shared automatically so coordinators are fully briefed. Triggered automatically for complex clinical concerns or explicit patient request — including a persistent "Talk to a person" link and typed requests like "I want to talk to a human," which work at every step, even before opt-in.
 
 ### 🔔 Calendar & Reminder Integration
 Calendar add-to offered immediately post-confirmation. Embeds the appointment into the patient's existing system — reduces reliance on memory, a core principle of behavioral design.
@@ -101,6 +115,10 @@ The **Feature Lab** (🔬 button in the chat header) is a visual map of every ca
 
 This demo is built around the same safety principles that would apply in a production clinical environment.
 
+**Consent before contact** — no treatment conversation starts until the patient opts in, per channel. Opt-out (STOP) is honored at any point in the conversation.
+
+**AI disclosure throughout** — the patient always knows they're talking to AI, and every screen offers a path to a human and emergency guidance.
+
 **Deterministic response engine** — all responses are hardcoded and fully reviewed. No stochastic AI variance in clinical recommendations.
 
 **±3-day scheduling constraint** — the system cannot propose a slot outside the therapeutic safety window. Enforced at the data layer, not just the UI.
@@ -124,7 +142,9 @@ nudge-demo.html
 ├── Feature Lab                   — capability cards, demos, toggles, rationale
 ├── Health Library                — 4 full clinical articles with reading modal
 ├── Capability tagging system     — every AI message labeled with its feature
-└── Zero external dependencies    — no API calls, no build step, no login
+├── Consent & disclosure layer    — opt-in card, STOP/HELP handling, AI banner, disclaimer
+├── Center config                 — clinic name, phone, hours, message limits (placeholder values, flagged in code)
+└── No API calls                  — no build step, no login
 ```
 
 **Production architecture** (original Nudge, available separately):
@@ -141,7 +161,11 @@ nudge-demo.html
 
 Capturing 30% of lost infusions returns 0.5 infusions per patient per year.
 
+
+
 ![Business Impact: Volume Recovery Model](docs/images/business-impact.png)
+
+
 
 | Patient Panel | Returned Infusions/Year | Value at $1K/infusion | Value at $7K/infusion |
 |---|---|---|---|
@@ -177,7 +201,7 @@ Most patient reminder systems send generic texts at a scheduled time. nudge. is 
 
 **Phase 1 — Integration**
 - FHIR API swap for live EHR data (sandboxService.ts designed for this)
-- SMS/WhatsApp deployment via Twilio
+- SMS/WhatsApp and AI voice deployment via Twilio, using the consent model already demonstrated (per-channel opt-in, STOP/HELP, consent records)
 - Adherence analytics dashboard
 
 **Phase 2 — Scale**
@@ -199,7 +223,11 @@ Designed in alignment with:
 - Clinical decision support principles and FHIR R4 interoperability standards
 - AHRQ health literacy standards for patient communication
 - FDA SaMD risk framework principles for clinical AI
-- HIPAA-compliant data handling design patterns
+- HIPAA-compliant data handling design patterns, including the right to request confidential communications
+- TCPA/FCC consent requirements for automated texts and AI-generated voice calls
+- CTIA Messaging Principles and Best Practices (opt-in, STOP/HELP, program disclosures)
+- California AB 3030 disclosure requirements for generative AI patient communications
+- FTC Act Section 5 (truthful, non-deceptive claims about AI capabilities)
 
 ---
 
@@ -207,7 +235,7 @@ Designed in alignment with:
 
 This is a **portfolio demonstration system** built to showcase AI product development, behavioral science application, health economics modeling, and clinical workflow design. The platform demonstrates how these disciplines can be combined to address a real and costly problem in infusion care.
 
-Clinical deployment would require prospective validation studies, regulatory review, EHR integration, and institutional governance approval.
+Clinical deployment would require prospective validation studies, regulatory and legal review (including consent and AI-disclosure requirements in each state of operation), EHR integration, and institutional governance approval. Clinic names, phone numbers, and message limits in the demo are fictional placeholders.
 
 ---
 
@@ -230,4 +258,4 @@ MIT License — see LICENSE for details
 
 ## GitHub Topics
 
-`healthcare-ai` `patient-adherence` `behavioral-science` `digital-health` `infusion-center` `conversational-ai` `autonomous-agents` `clinical-decision-support` `fhir` `react` `typescript` `portfolio`
+`healthcare-ai` `patient-adherence` `patient-consent` `ai-transparency` `behavioral-science` `digital-health` `infusion-center` `conversational-ai` `autonomous-agents` `clinical-decision-support` `fhir` `react` `typescript` `portfolio`
