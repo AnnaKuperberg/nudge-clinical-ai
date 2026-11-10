@@ -98,7 +98,7 @@ h2{font-size:clamp(28px,4vw,36px);font-weight:700;letter-spacing:-.02em;line-hei
 .callout .big{font-weight:700;margin-top:6px;font-size:18px;line-height:1.45}
 .callout .small{color:var(--muted);font-size:15px;margin-top:6px;line-height:1.55}
 
-.steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:32px}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:32px}
 .steps li{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
 .steps .head{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
 .num{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:15px;font-weight:700}
@@ -240,23 +240,27 @@ Your next infusion is Thursday, November 6 at 10:00 AM. Can you confirm?</div>
 
   <section class="wrap" aria-labelledby="how">
     <h2 id="how">What Nudge does, and how</h2>
-    <p class="intro">It converts missed-care risk into a clinically constrained workflow that can act on barriers and preserve human oversight.</p>
+    <p class="intro">It converts missed-care risk into a clinically constrained workflow that starts with patient consent, acts on barriers, and preserves human oversight.</p>
 
     <ol class="steps">
       <li>
-        <div class="head"><span class="num b">1</span>Personalize</div>
+        <div class="head"><span class="num b">1</span>Consent first</div>
+        <p>Patients opt in to texts or AI voice calls, can stop anytime, and always know they're talking to AI.</p>
+      </li>
+      <li>
+        <div class="head"><span class="num b">2</span>Personalize</div>
         <p>Uses adherence history and behavioral strategy to tailor outreach.</p>
       </li>
       <li>
-        <div class="head"><span class="num b">2</span>Detect barriers</div>
+        <div class="head"><span class="num b">3</span>Detect barriers</div>
         <p>Surfaces scheduling, transport, cost, education, and engagement friction.</p>
       </li>
       <li>
-        <div class="head"><span class="num t">3</span>Resolve safely</div>
+        <div class="head"><span class="num t">4</span>Resolve safely</div>
         <p>Reschedules within the ±3-day window and coordinates practical support.</p>
       </li>
       <li>
-        <div class="head"><span class="num t">4</span>Escalate</div>
+        <div class="head"><span class="num t">5</span>Escalate</div>
         <p>Hands clinical concerns to the care team with conversation context preserved.</p>
       </li>
     </ol>
@@ -299,7 +303,7 @@ Your next infusion is Thursday, November 6 at 10:00 AM. Can you confirm?</div>
               <span class="num">2</span>
               <div>
                 <strong>Choose a persona</strong>
-                <span class="d">Try a confirmation, reschedule, or transport/cost barrier path.</span>
+                <span class="d">Opt in on the first screen, then try a confirmation, reschedule, or transport/cost barrier path.</span>
               </div>
             </li>
             <li>
@@ -317,7 +321,7 @@ Your next infusion is Thursday, November 6 at 10:00 AM. Can you confirm?</div>
 </main>
 
 <footer class="wrap">
-  <p class="disclaimer">Portfolio demonstration only. Clinical deployment would require prospective validation, institutional governance, and production security controls.</p>
+  <p class="disclaimer">Portfolio demonstration only. Nudge is AI-assisted: AI can make mistakes, and Nudge is not diagnostic and does not replace medical care. Clinical deployment would require prospective validation, institutional governance, and production security controls.</p>
   <p class="foot-links">
     <a href="https://www.linkedin.com/in/anna-kuperberg-md">linkedin.com/in/anna-kuperberg-md</a>
     <a href="mailto:kuperberg.anna@gmail.com">kuperberg.anna@gmail.com</a>
