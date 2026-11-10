@@ -411,6 +411,35 @@ img,svg,video{max-width:100%}
   .slot-card{flex-basis:100%}
 }
 
+/* ─── AI disclosure banner, consent card, disclaimer (AB 3030 / TCPA / CTIA) ─── */
+.ai-banner{display:flex;align-items:center;gap:8px;padding:8px 20px;background:#ECFEFF;border-bottom:1px solid #A5F3FC;color:#155E75;font-size:12px;font-weight:600;flex-shrink:0}
+.ai-banner a{margin-left:auto;color:#0E7490;font-weight:700;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.consent-card{max-width:440px;width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:4px 16px 16px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden;font-size:13px;line-height:1.55;color:#111827}
+.cc-ai{background:#ECFEFF;color:#155E75;font-weight:700;font-size:12px;padding:9px 15px;border-bottom:1px solid #A5F3FC}
+.cc-body{padding:13px 15px}
+.cc-body p{margin-bottom:9px}
+.cc-body ul{margin:0 0 10px 18px}
+.cc-body li{margin-bottom:3px}
+.cc-h{font-weight:800;font-size:12px;margin:10px 0 5px;color:#111827}
+.cc-know li{color:#374151;font-size:12px}
+.cc-opts{display:flex;flex-direction:column;gap:7px;margin:4px 0 12px}
+.cc-opt{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1.5px solid #E5E7EB;border-radius:10px;cursor:pointer;font-weight:600}
+.cc-opt:has(input:checked){border-color:#0969DA;background:#EFF6FF}
+.cc-opt input{width:17px;height:17px;accent-color:#0969DA}
+.cc-btns{display:flex;gap:8px;flex-wrap:wrap}
+.cc-save{flex:1;padding:10px 14px;border-radius:50px;border:none;background:#0969DA;color:#fff;font-weight:700;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer}
+.cc-save:disabled{background:#9CA3AF;cursor:not-allowed}
+.cc-no{padding:10px 14px;border-radius:50px;border:1.5px solid #D1D5DB;background:#fff;color:#374151;font-weight:700;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer}
+.cc-done{font-size:11px;font-weight:700;color:#16A34A}
+.cc-disc{padding:11px 15px;background:#F9FAFB;border-top:1px solid #E5E7EB;font-size:11px;line-height:1.55;color:#4B5563}
+.cc-disc b{color:#111827}
+.cc-disc .em{color:#B91C1C;font-weight:700}
+.disc-bar{margin-top:7px;font-size:10.5px;line-height:1.45;color:#6B7280;text-align:center}
+.disc-bar a{color:#0969DA;font-weight:600;cursor:pointer}
+.disc-full{display:none;text-align:left;margin-top:6px;padding:9px 11px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;color:#4B5563}
+.disc-full.open{display:block}
+@media (max-width:768px){.ai-banner{padding:7px 12px;font-size:11px}}
+
 @media (prefers-reduced-motion:reduce){
   #sb,#sb-backdrop{transition:none}
 }
@@ -488,12 +517,18 @@ img,svg,video{max-width:100%}
     <button class="lab-btn" onclick="openCapabilities()">🔬 <span class="lab-txt">Feature Lab</span></button>
   </div>
 
+  <!-- AB 3030: AI disclosure shown prominently throughout a chat interaction -->
+  <div class="ai-banner" role="note">🤖 You're chatting with Nudge, an AI assistant — not a person.<a onclick="talkToPerson()">Talk to a person</a></div>
+
   <div class="msgs" id="msgs"></div>
 
   <div class="chat-footer">
     <div class="inp-row">
       <input class="chat-inp" id="chat-inp" placeholder="Type a message..." oninput="updateSendBtn()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleSend()}">
       <button class="send-btn off" id="send-btn" onclick="handleSend()">➤</button>
+    </div>
+    <div class="disc-bar">AI can make mistakes. Not medical advice. Emergency? Call 911. <a onclick="document.getElementById('disc-full').classList.toggle('open')">Details</a>
+      <div class="disc-full" id="disc-full"></div>
     </div>
   </div>
 </main>
@@ -1136,10 +1171,24 @@ tyler:{
 // ═══════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// CENTER CONFIG — ⚠ PLACEHOLDER VALUES (fictional demo data).
+// Replace every value marked PLACEHOLDER before any real deployment.
+// ═══════════════════════════════════════════════════
+const CENTER = {
+  name:  'Bay Infusion Center',   // PLACEHOLDER: infusion center legal/display name
+  phone: '(555) 010-0100',        // PLACEHOLDER: staffed patient line
+  hours: 'Mon–Fri, 8 AM–6 PM',    // PLACEHOLDER: hours the line is staffed
+  maxMsgsPerWeek: 3,              // PLACEHOLDER: confirm against TCPA healthcare-exemption limits + CTIA program terms
+};
+
+// Disclaimer — AI use, not diagnostic, human contact path (AB 3030), emergency routing
+const DISCLAIMER_HTML = () => `<b>Important:</b> Nudge uses artificial intelligence (AI), and AI can make mistakes. Nudge does not diagnose, treat, or give medical advice, and it does not replace care from your doctor, nurse, or pharmacist. Always follow your care team's instructions. If you have questions about your health or treatment, call <b>${CENTER.name}</b> at <b>${CENTER.phone}</b> (${CENTER.hours}), or type "talk to a person." <span class="em">If you think you're having a medical emergency or a serious reaction, such as trouble breathing, swelling, or chest pain, call 911 right away.</span>`;
+
 let activeId = 'daniel';
 let messages = []; // {role:'ai'|'user', text, special?}
 let patientState = {}; // per patient: {confirmed,canceled}
-PATIENTS.forEach(p => patientState[p.id] = {confirmed:p.defaultConfirmed, canceled:false});
+PATIENTS.forEach(p => patientState[p.id] = {confirmed:p.defaultConfirmed, canceled:false, consent:null}); // consent: null | {sms:bool, voice:bool} | 'declined'
 let currentNode = 'greeting';
 let isTyping = false;
 let calendarAdded = false;
@@ -1215,6 +1264,10 @@ function renderMessages(){
         </div>`).join('')}</div></div>`;
     }
 
+    if(m.special === 'consent'){
+      return `<div class="msg-wrap ai">${renderConsentCard(m.live && currentNode === 'consent')}</div>`;
+    }
+
     if(m.role === 'ai' && m.caps && m.caps.length){
       const chips = m.caps.filter(c => CAP_LABELS[c]).map(c => {
         const cl = CAP_LABELS[c];
@@ -1234,6 +1287,9 @@ function renderMessages(){
   const node = getNode(currentNode);
   if(!isTyping && node){
     html += renderCurrentUI(node);
+  }
+  if(!isTyping && currentNode === 'consent_declined'){
+    html += `<div class="resp-area"><div class="btns-row"><button class="rbtn c-blue" onclick="showConsent()">↺ I changed my mind</button></div></div>`;
   }
 
   container.innerHTML = html;
@@ -1462,6 +1518,38 @@ function handleSend(){
   addUserMsg(text);
   const lc = text.toLowerCase();
 
+  // Talk-to-a-person intent works everywhere (AB 3030 human contact path)
+  if(/\b(person|human|staff|someone|nurse|real people)\b/.test(lc)){
+    messages.pop();
+    talkToPerson();
+    return;
+  }
+  // Before opt-in, Nudge does not start treatment conversations
+  if(currentNode === 'consent' || currentNode === 'consent_declined'){
+    const stop = /^(stop|unsubscribe|cancel|end|quit)$/.test(lc);
+    messages.push({role:'ai', text: stop
+      ? `You won't receive texts or AI calls from Nudge. You can reach ${CENTER.name} at ${CENTER.phone}.`
+      : (currentNode === 'consent'
+        ? `Please choose how you'd like us to contact you using the options above, or tap "No thanks."`
+        : `You haven't opted in to Nudge messages. To talk with your care team, call ${CENTER.name} at ${CENTER.phone} (${CENTER.hours}).`)});
+    if(stop && currentNode === 'consent'){ patientState[activeId].consent = 'declined'; currentNode = 'consent_declined'; }
+    renderMessages();
+    return;
+  }
+  // CTIA: STOP keyword honored at any point
+  if(/^(stop|unsubscribe|quit|end)$/.test(lc)){
+    patientState[activeId].consent = 'declined';
+    currentNode = 'consent_declined';
+    messages.push({role:'ai', caps:['consent'], text:`You've been unsubscribed. You won't receive more texts or AI calls from Nudge. For help, call ${CENTER.name} at ${CENTER.phone}.`});
+    renderMessages();
+    return;
+  }
+  if(lc === 'help'){
+    messages.push({role:'ai', text:`Nudge for ${CENTER.name}: appointment reminders and treatment support. Up to ${CENTER.maxMsgsPerWeek} msgs/week. Msg & data rates may apply. Reply STOP to cancel. Questions? Call ${CENTER.phone}.`});
+    renderMessages();
+    return;
+  }
+
   if(triviaMode){
     triviaMode = false;
     const correct = lc.includes('3') || lc.includes('three') || lc.includes('±3');
@@ -1513,6 +1601,13 @@ function switchPatient(id){
   renderMessages();
   setTimeout(()=>{
     isTyping = false;
+    if(!patientState[activeId].consent){ showConsent(); return; }
+    showGreeting();
+  }, 600);
+}
+
+function showGreeting(){
+    currentNode = 'greeting';
     const greetNode = getFlow().greeting;
     const capVal = NODE_CAPS['greeting'];
     const msg = {role:'ai', text: greetNode.aiText};
@@ -1520,7 +1615,114 @@ function switchPatient(id){
     if(msg.caps && msg.caps.includes('nudges')) msg.strategyName = getPatient().strategy;
     messages.push(msg);
     renderMessages();
+}
+
+// ═══════════════════════════════════════════════════
+// OPT-IN CONSENT (TCPA / CTIA / HIPAA confidential-communications)
+// ═══════════════════════════════════════════════════
+function showConsent(){
+  messages.forEach(m => { if(m.special === 'consent') m.live = false; });
+  currentNode = 'consent';
+  messages.push({role:'ai', special:'consent', live:true});
+  renderMessages();
+  // Start at the top of the card so the AI notice is read first
+  const cards = document.querySelectorAll('.consent-card');
+  if(cards.length) cards[cards.length-1].scrollIntoView({block:'start'});
+}
+
+function renderConsentCard(live){
+  const p = getPatient();
+  const c = patientState[p.id].consent;
+  const dis = live ? '' : 'disabled';
+  const chk = k => (c && typeof c === 'object' && c[k]) ? 'checked' : '';
+  const footer = live
+    ? `<div class="cc-btns"><button class="cc-save" id="cc-save" onclick="submitConsent()" disabled>Save my choice</button><button class="cc-no" onclick="declineConsent()">No thanks</button></div>`
+    : `<div class="cc-done">✓ Choice saved</div>`;
+  return `<div class="consent-card">
+    <div class="cc-ai">🤖 You're chatting with Nudge, an AI assistant, not a person.</div>
+    <div class="cc-body">
+      <p>Hi ${escHtml(p.firstName)}, this is Nudge, an AI assistant working with <b>${CENTER.name}</b> to support you during your treatment.</p>
+      <p>With your permission, we can contact you by <b>text message</b> and <b>automated (AI) voice call</b> about your infusion treatment. We can help with:</p>
+      <ul>
+        <li><b>Reminders</b> for upcoming appointments</li>
+        <li><b>Rescheduling</b> if you need to change a visit</li>
+        <li><b>Help with things that get in the way</b>, like transportation, cost, or worries about side effects</li>
+        <li><b>Connecting you to a person</b> on our care team whenever you need one</li>
+      </ul>
+      <div class="cc-h">Before you choose:</div>
+      <ul class="cc-know">
+        <li>This is optional. Your care will not change if you say no.</li>
+        <li>We send up to ${CENTER.maxMsgsPerWeek} messages per week. Message and data rates may apply.</li>
+        <li>Texts and calls may not be fully private. Others who use your phone could see or hear them. You can ask us to contact you another way.</li>
+        <li>You can stop anytime. Reply <b>STOP</b> to any text, or say "stop calling" during a call. Reply <b>HELP</b> for help.</li>
+        <li>Nudge is not watched around the clock and cannot respond to emergencies.</li>
+      </ul>
+      <div class="cc-h">How would you like us to contact you?</div>
+      <div class="cc-opts">
+        <label class="cc-opt"><input type="checkbox" id="cc-sms" ${chk('sms')} ${dis} onchange="ccToggle()"> 💬 Text messages</label>
+        <label class="cc-opt"><input type="checkbox" id="cc-voice" ${chk('voice')} ${dis} onchange="ccToggle()"> 📞 AI voice calls</label>
+      </div>
+      ${footer}
+    </div>
+    <div class="cc-disc">${DISCLAIMER_HTML()}</div>
+  </div>`;
+}
+
+function ccToggle(){
+  const any = document.getElementById('cc-sms').checked || document.getElementById('cc-voice').checked;
+  document.getElementById('cc-save').disabled = !any;
+}
+
+function submitConsent(){
+  const sms = document.getElementById('cc-sms').checked, voice = document.getElementById('cc-voice').checked;
+  if(!sms && !voice) return;
+  patientState[activeId].consent = {sms, voice};
+  const chosen = sms && voice ? 'text messages and AI voice calls' : sms ? 'text messages only' : 'AI voice calls only';
+  messages.push({role:'user', text:`Yes — ${chosen}.`});
+  let ack = `Thanks — you're signed up for ${chosen}. You can change this or stop anytime.`;
+  if(voice) ack += `\n\nOn every call, Nudge will tell you at the start and the end that you're speaking with an AI, and how to reach a person.`;
+  if(sms) ack += `\n\nYou'll get a confirmation text now. Reply STOP to end texts or HELP for help.`;
+  currentNode = 'consent_done';
+  isTyping = true; renderMessages();
+  setTimeout(()=>{
+    isTyping = false;
+    messages.push({role:'ai', text:ack, caps:['consent']});
+    renderMessages();
+    isTyping = true; renderMessages();
+    setTimeout(()=>{ isTyping = false; showGreeting(); }, 900);
   }, 600);
+}
+
+function declineConsent(){
+  patientState[activeId].consent = 'declined';
+  messages.push({role:'user', text:'No thanks.'});
+  currentNode = 'consent_declined';
+  isTyping = true; renderMessages();
+  setTimeout(()=>{
+    isTyping = false;
+    messages.push({role:'ai', caps:['consent'], text:`No problem. Your care won't change, and we won't send you texts or AI calls.\n\nYou can always reach ${CENTER.name} at ${CENTER.phone} (${CENTER.hours}). If you change your mind, you can opt in anytime.`});
+    renderMessages();
+  }, 600);
+}
+
+// Feature Lab → replay the opt-in screen from a clean state
+function demoConsentFlow(){
+  closeCapabilities();
+  patientState['daniel'].consent = null;
+  messages = [];
+  switchPatient('daniel');
+}
+
+function talkToPerson(){
+  if(isTyping) return;
+  if(currentNode === 'consent' || currentNode === 'consent_declined' || !getFlow().staff){
+    messages.push({role:'user', text:"I'd like to talk to a person."});
+    messages.push({role:'ai', text:`You can reach a member of our care team at ${CENTER.name}: ${CENTER.phone} (${CENTER.hours}).\n\nIf you think you're having a medical emergency, call 911 right away.`});
+    renderMessages();
+    return;
+  }
+  messages.push({role:'user', text:"I'd like to talk to a person."});
+  showAIResponse('staff', 700);
 }
 
 function updateSendBtn(){
@@ -1588,6 +1790,8 @@ const NODE_CAPS = {
 };
 
 const CAP_LABELS = {
+  consent:   { icon:'🔐', name:'Privacy-First Opt-In & Opt-Out',  color:'#0969DA' },
+  disclosure:{ icon:'🤖', name:'AI Transparency & Safety Disclaimer', color:'#0E7490' },
   nudges:    { icon:'🧠', name:'Behavioral Nudge Engine',         color:'#6366F1' },
   scheduling:{ icon:'📅', name:'Smart Appointment Management',    color:'#2563EB' },
   windows:   { icon:'⏱', name:'±3-Day Clinical Safety Window',   color:'#059669' },
@@ -1604,6 +1808,12 @@ const CAP_LABELS = {
 // FEATURE LAB
 // ═══════════════════════════════════════════════════
 const CAPS = [
+  { id:'consent', icon:'🔐', name:'Privacy-First Opt-In & Opt-Out', color:'#0969DA', bg:'#EFF6FF',
+    why:"Patients decide whether, and how, Nudge reaches them. Text messages and AI voice calls are separate opt-ins, consent is never a condition of care, and STOP works at any point. This follows TCPA and CTIA messaging rules, honors HIPAA's right to confidential communications, and builds the trust that adherence depends on.",
+    on:true },
+  { id:'disclosure', icon:'🤖', name:'AI Transparency & Safety Disclaimer', color:'#0E7490', bg:'#ECFEFF',
+    why:"Patients should always know when they're talking to AI and how to reach a human. A persistent AI notice plus a clear disclaimer (AI can make mistakes, not diagnostic, not a replacement for care, call 911 in an emergency) meets California AB 3030, keeps claims honest under FTC rules, and keeps Nudge's intended use within low-risk adherence support.",
+    on:true },
   { id:'nudges', icon:'🧠', name:'Behavioral Nudge Engine', color:'#6366F1', bg:'#EEF2FF',
     why:'Patients respond to different motivational framings depending on their adherence history and psychological profile. Matching message type — positive reinforcement for high-adherence patients, loss aversion for at-risk patients — produces measurably higher confirmation rates than a single generic reminder.',
     on:true },
@@ -1686,6 +1896,25 @@ function renderCapabilities(){
 
 function renderCapDemo(id){
   switch(id){
+
+    case 'consent': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="s-pill" style="background:#EFF6FF;color:#0969DA">💬 Text messages ☑</span>
+          <span class="s-pill" style="background:#EFF6FF;color:#0969DA">📞 AI voice calls ☑</span>
+          <span class="s-pill" style="background:#FEE2E2;color:#B91C1C">STOP → unsubscribed</span>
+          <span class="s-pill" style="background:#F3F4F6;color:#374151">HELP → program info</span>
+        </div>
+        <button class="d-btn d-blue" style="align-self:flex-start" onclick="demoConsentFlow()">🔐 Open the opt-in screen</button>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">Shown before any treatment conversation. Separate consent per channel, revocable anytime, and declining never changes care.</div>
+      </div>`;
+
+    case 'disclosure': return `
+      <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+        <div style="padding:7px 10px;background:#ECFEFF;border:1px solid #A5F3FC;border-radius:8px;color:#155E75;font-size:11px;font-weight:600">🤖 You're chatting with Nudge, an AI assistant — not a person.</div>
+        <div class="cc-disc" style="border:1px solid #E5E7EB;border-radius:8px;font-size:10.5px">${DISCLAIMER_HTML()}</div>
+        <div style="font-size:10px;color:#9CA3AF;font-weight:500">The AI notice stays visible for the whole chat, the disclaimer appears on the opt-in screen and under every input, and "talk to a person" works at any point. Voice calls state they're AI at the start and end.</div>
+      </div>`;
 
     case 'nudges': return `
       <div style="display:flex;flex-direction:column;gap:6px;width:100%">
@@ -1845,6 +2074,7 @@ function demoTrivia(){
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
+document.getElementById('disc-full').innerHTML = DISCLAIMER_HTML();
 renderSidebar();
 switchPatient('daniel');
 if(window.location.hash === '#feature-lab') openCapabilities();
